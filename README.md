@@ -45,6 +45,8 @@ Then, in order:
 | `src/lib/draft.ts` | `makeDraftStore<T>` — keeps unsaved work in `localStorage` with a TTL, for the window where the browser holds the only copy. |
 | `src/styles/core.css` | Structure: spacing scale, radii, reset, layout primitives, and the slot contract a theme fills. Project-agnostic — don't edit per app. |
 | `src/styles/theme.css` | Identity: the pod design system's daylight/ink palette, light and dark, mapped onto those slots. This is the file to fork for a different look. |
+| `styleguide.html` | The design system rendered from its own tokens, with measured contrast ratios and a theme switch. Ships in `dist/`. |
+| `scripts/audit.mjs` | The design rules a machine can decide — contrast, token completeness, a11y affordances. |
 | `deploy/`, `Makefile`, `docker-compose.yml` | Build locally, rsync `dist/`, serve from an nginx container behind the shared gateway. |
 
 Not included, on purpose: no demo-mode framework, no ACL/permission helpers, no
@@ -53,25 +55,38 @@ data-format helpers, no vocabulary. See the ADRs.
 ## Commands
 
 ```bash
-npm run dev      # Vite dev server
+npm run dev      # Vite dev server — app at /, design system at /styleguide.html
+npm run verify   # typecheck + tests + design audit. Run this before adopting a version.
 npm run check    # typecheck only
+npm test         # unit tests (vitest)
+npm run audit    # contrast ratios, token completeness, a11y affordances
 npm run build    # typecheck + production build into dist/
 make             # lists the deploy targets
 ```
 
-## Testing it
+## Validating it
 
-There is no mock mode: completing a login needs a reachable Solid identity
-provider. The kit's shell is enough to verify the whole chain — sign in, and it
-prints the WebID and the discovered pod root.
+Three layers, and they cover different things — the automated ones do not cover
+sign-in and must not be read as if they did.
 
-Worth exercising deliberately, because these are the paths that broke before:
+**1. `npm run verify`** — 51 unit tests plus the design audit. The tests cover
+the logic that carries a "this broke before" comment: the Link-header parse and
+the stop-at-first-match walk, the 412 retry, draft expiry, accent folding, local
+vs UTC dates, and the sign-in error messages. All of it runs with a stubbed
+fetch — no pod needed. The audit computes WCAG contrast for every text token
+against every surface in both themes, checks that no color token is defined for
+one theme and missing from the other, and checks that focus-visible,
+reduced-motion and safe-area insets exist at all.
 
-- Sign in with an **issuer URL**, then with a **WebID** — different code paths.
-- A WebID whose profile has no `pim:storage`, to exercise the Link-header walk.
-- Reload the page — `restorePreviousSession` should hold.
-- An expired session, which should report an expired session rather than a raw
-  401 error graph.
+**2. `/styleguide.html`** — the design system rendered from itself. Every value
+is read back out of the live CSS, so it cannot drift from what ships. Colour
+slots carry their measured contrast ratio; the Light / Dark / System switch
+exercises all three theme states.
+
+**3. [`docs/manual-tests.md`](docs/manual-tests.md)** — sign-in, session restore,
+pod discovery, expired sessions, and the mobile layout. **A kit version is not
+validated until this has been run against a live provider**, on a real machine
+with real credentials. It is not automatable and is not attempted here.
 
 ## Documentation
 
@@ -79,5 +94,7 @@ Worth exercising deliberately, because these are the paths that broke before:
   owns what, and the rule about which layers may talk to which.
 - [`docs/ux-principles.md`](docs/ux-principles.md) — the interaction rules these
   apps are built to.
+- [`docs/manual-tests.md`](docs/manual-tests.md) — the suite you run locally
+  against a live provider. The authority on whether a version is fit to build on.
 - [`docs/adr/`](docs/adr/) — decisions with reasons, including the ones that
   came from being wrong in production.

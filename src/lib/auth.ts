@@ -40,14 +40,33 @@ export interface LoginState {
 /** Reads `solid:oidcIssuer` from a WebID's own profile document. */
 export async function discoverOidcIssuer(webId: string): Promise<string> {
   const profileUrl = webId.split("#")[0];
-  const dataset = await getSolidDataset(profileUrl);
+
+  let dataset;
+  try {
+    dataset = await getSolidDataset(profileUrl);
+  } catch (err) {
+    // A network-level failure here reaches the user as "Failed to fetch",
+    // which tells them nothing about what to do. Name the address instead —
+    // by far the most common causes are a typo and a provider that is down.
+    throw new Error(
+      `Could not reach ${profileUrl}. Check the address, and that the ` +
+        `provider is online. (${err instanceof Error ? err.message : String(err)})`
+    );
+  }
+
   const me = getThing(dataset, webId);
   if (!me) {
-    throw new Error(`WebID ${webId} is not described by its own profile document.`);
+    throw new Error(
+      `${profileUrl} responded, but does not describe ${webId}. ` +
+        `If this is a pod address rather than a WebID, it may not be a Solid provider.`
+    );
   }
   const issuer = getUrl(me, OIDC_ISSUER_PREDICATE);
   if (!issuer) {
-    throw new Error("This WebID profile declares no solid:oidcIssuer.");
+    throw new Error(
+      `The profile at ${profileUrl} declares no solid:oidcIssuer, so there is ` +
+        `no provider to sign in with. Try entering the pod's address instead.`
+    );
   }
   return issuer;
 }

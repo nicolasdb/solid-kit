@@ -115,4 +115,14 @@ export async function updateDocument(
       // First 412: re-read and re-apply against whatever is there now.
     }
   }
+
+  // Unreachable while the guard above is intact — and that is the point. If a
+  // future edit lets the loop fall through, resolving here would report success
+  // for a write that never happened, which is the exact failure this whole file
+  // exists to prevent. Fail loudly instead.
+  throw fail(
+    `Gave up updating ${url} without writing.`,
+    "conflict",
+    412
+  );
 }

@@ -16,7 +16,7 @@ REMOTE_PATH := /home/nicolas/$(APP)
 DEPLOY_PATHS := dist docker-compose.yml deploy
 
 .DEFAULT_GOAL := help
-.PHONY: help dev build check clean vps-diff vps-push vps-deploy vps-logs vps-restart vps-ssh
+.PHONY: help dev build check test verify audit clean vps-diff vps-push vps-deploy vps-logs vps-restart vps-ssh
 
 help: ## Show this help
 	@echo "$(APP)"
@@ -37,6 +37,17 @@ build: ## Typecheck + production build into dist/
 
 check: ## Typecheck only, no build
 	npm run check
+
+test: ## Unit tests
+	npm test
+
+audit: ## Design-system checks: contrast, token completeness, a11y affordances
+	npm run audit
+
+verify: ## Everything automated: typecheck + tests + audit
+	npm run verify
+	@echo
+	@echo "Automated checks pass. Sign-in is NOT covered — see docs/manual-tests.md."
 
 clean: ## Remove dist/
 	rm -rf dist

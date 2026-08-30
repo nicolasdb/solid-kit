@@ -17,8 +17,11 @@ import { authFetch as fetch } from "./auth";
 
 const STORAGE_TYPE = "http://www.w3.org/ns/pim/space#Storage";
 
-/** True if the Link header advertises `rel="type"` pointing at pim:Storage. */
-function advertisesStorageType(linkHeader: string | null): boolean {
+/**
+ * True if the Link header advertises `rel="type"` pointing at pim:Storage.
+ * Exported for tests — header parsing is fiddly enough to be worth pinning.
+ */
+export function advertisesStorageType(linkHeader: string | null): boolean {
   if (!linkHeader) return false;
   const entries = linkHeader.match(/<[^>]*>[^,]*/g) ?? [];
   return entries.some((entry) => {

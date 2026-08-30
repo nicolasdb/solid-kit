@@ -19,14 +19,29 @@ most valuable content in the files, not noise to trim.
 
 ```bash
 npm install
-npm run dev      # Vite dev server
-npm run check    # typecheck only
-npm run build    # tsc && vite build
+npm run dev      # Vite dev server — app at /, design system at /styleguide.html
+npm run verify   # typecheck + tests + audit; the gate before adopting a version
+npm test         # vitest
+npm run audit    # contrast, token completeness, a11y affordances
+npm run build    # tsc && vite build (two entries: index.html, styleguide.html)
 make             # lists deploy targets, generated from `## ` comments
 ```
 
-No test suite or linter is configured. Verification is a live login against a
-real provider — see the README.
+### Verification has three layers, and they do not overlap
+
+1. **`npm run verify`** — automated. Tests cover the logic carrying a "this
+   broke before" comment; the audit enforces the contrast and token-completeness
+   rules that would otherwise be comments nobody re-checks.
+2. **`/styleguide.html`** — the design system read back from its own live CSS.
+   Never hardcode a value into it; a styleguide that restates the palette cannot
+   catch drift, which is its only job.
+3. **`docs/manual-tests.md`** — sign-in and the mobile layout, run by hand
+   against a live provider. **Not covered by 1 or 2, and never claim otherwise.**
+   A kit version is not validated until that suite has been run.
+
+When adding to `src/lib/`, add the test with it — kit code is copied, so a bug
+here is found three times instead of once. Tests are mocked at `./auth`, so they
+need no pod.
 
 ## Architecture
 
