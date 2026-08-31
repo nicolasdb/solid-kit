@@ -38,3 +38,40 @@ export const UNDO_WINDOW_MS = 8000;
  * stops being a choice and becomes a list to study.
  */
 export const MAX_CHOICES = 4;
+
+/**
+ * Doherty threshold: below this, showing a loading indicator costs more than
+ * it buys.
+ *
+ * A spinner that appears for 150ms and vanishes is a flicker — the eye reports
+ * it as a glitch, not as progress. Most pod reads on a warm connection land
+ * under this. `mountPending` waits this long before showing anything.
+ */
+export const PENDING_DELAY_MS = 400;
+
+/**
+ * How long an indeterminate wait stays silent before it starts explaining
+ * itself.
+ *
+ * Past this, "still working" is no longer reassuring on its own: the honest
+ * reading is that something is wrong with the provider, the network, or the
+ * pod. A wait that never acknowledges being long is a dead end of the same
+ * kind an error with no way forward is.
+ */
+export const PENDING_PATIENCE_MS = 10000;
+
+/**
+ * Every error state carries a way forward — an action, or a sentence saying
+ * why there is none.
+ *
+ * The quality of the failure paths decides long-term trust more than the
+ * quality of the success paths: a success is forgotten the moment it works,
+ * a dead end is remembered. On a pod app failures are routine rather than
+ * exceptional — expired tokens, a provider down, a pod that moved — and none
+ * of them are the user's mistake.
+ *
+ * A boolean rather than a number because there is no threshold to tune: this
+ * is either enforced or it is decoration. `renderError` throws when it is
+ * violated, and the audit checks that the pairing still exists.
+ */
+export const ERRORS_MUST_OFFER_RECOVERY = true;

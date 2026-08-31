@@ -174,41 +174,91 @@ h2:focus-visible,
   border-bottom: var(--border-width) solid var(--border-subtle);
 }
 
+/* ── Error state ──────────────────────────────────────────────────────────── */
+
+/* Laid out like the empty state on purpose: a failure is a state of the screen,
+   not an interruption pasted over it. The danger colour is carried by the
+   detail line alone — a whole panel in --danger-soft reads as an alarm, and an
+   expired token is not an alarm. */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-6) 0;
+}
+
+/* Progressive disclosure applies to failures too: the plain sentence for
+   everyone, the server's own words for whoever is filing the bug. */
+.error-technical summary {
+  color: var(--text-tertiary);
+  font-size: var(--text-meta);
+  cursor: pointer;
+}
+
+.error-technical pre {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  overflow-x: auto;
+  background: var(--code-bg);
+  border-radius: var(--radius-md);
+  font-size: var(--text-meta);
+}
+
 /* ── Pending ──────────────────────────────────────────────────────────────── */
 
+/* Column, not a row: the message leads and the indicator sits under it as a
+   rule. A spinner beside text competes with the text for the same glance. */
 .pending {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
   color: var(--text-secondary);
 }
 
-.pending-spinner {
-  width: var(--space-4);
-  height: var(--space-4);
-  border: 2px solid var(--border);
-  border-top-color: var(--accent);
+/* The track is the full width of the wait; the line crosses it and starts
+   again. Travel is what a rotation cannot express — a circle that has gone
+   round eighty times looks identical to one that is stuck. */
+.pending-track {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: var(--measure-body);
+  height: 2px;
+  overflow: hidden;
+  background: var(--border-subtle);
   border-radius: var(--radius-full);
-  animation: kit-spin 0.8s linear infinite;
-  flex-shrink: 0;
 }
 
-@keyframes kit-spin {
+.pending-line {
+  position: absolute;
+  inset-block: 0;
+  width: 35%;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+  animation: kit-pending-travel 1.4s ease-in-out infinite;
+}
+
+@keyframes kit-pending-travel {
+  from {
+    left: -35%;
+  }
   to {
-    transform: rotate(360deg);
+    left: 100%;
   }
 }
 
 /* core.css already reduces animation globally under prefers-reduced-motion,
-   which would leave the spinner frozen mid-rotation and reading as broken.
-   Replace the motion with a pulse of opacity instead of removing the signal. */
+   which would leave the line parked at one end and reading as broken. Replace
+   the motion with a static full-width rule rather than removing the signal —
+   the message above it is still carrying the actual information. */
 @media (prefers-reduced-motion: reduce) {
-  .pending-spinner {
+  .pending-line {
     animation: none;
-    border-top-color: var(--border);
-    background: var(--accent);
-    border-radius: var(--radius-full);
-    opacity: 0.6;
+    left: 0;
+    width: 100%;
+    opacity: 0.5;
   }
 }
 

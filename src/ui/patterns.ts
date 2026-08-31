@@ -9,14 +9,26 @@
  * renders. The two that need behaviour (`mountCheckpoint`, `toast`) take a
  * container and wire themselves.
  */
-import { MAX_CHOICES, MAX_CHUNKS_PER_STEP, UNDO_WINDOW_MS } from "./ux";
+import {
+  MAX_CHOICES,
+  MAX_CHUNKS_PER_STEP,
+  PENDING_DELAY_MS,
+  PENDING_PATIENCE_MS,
+  UNDO_WINDOW_MS,
+} from "./ux";
 import { announce } from "./a11y";
 
-/** Escapes text before it goes into innerHTML. */
+/**
+ * Escapes text before it goes into innerHTML.
+ *
+ * Quotes are escaped too, which `textContent` alone does not do — several
+ * patterns here interpolate into an attribute (`id="${esc(...)}"`), and a
+ * function named `esc` that is only safe in element content is a trap.
+ */
 export function esc(value: string): string {
   const div = document.createElement("div");
   div.textContent = value;
-  return div.innerHTML;
+  return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 /* ── Concept card ─────────────────────────────────────────────────────────── */
@@ -210,21 +222,154 @@ export function renderEmptyState(state: EmptyState): string {
     </div>`;
 }
 
+/* ── Error state ──────────────────────────────────────────────────────────── */
+
+export interface ErrorState {
+  /** What failed, in the user's terms. Not "Error" and not a status code. */
+  title: string;
+  /**
+   * What happened and which resource refused. `describePodError` from
+   * `lib/pod.ts` produces exactly this line — pass it straight through.
+   */
+  detail: string;
+  /** The way forward. A retry, a re-sign-in, a way back to somewhere that works. */
+  action?: { label: string; id: string };
+  /**
+   * Why there is no action, when there genuinely is none. Required in that
+   * case — see `renderError`.
+   */
+  recovery?: string;
+  /**
+   * The raw failure, behind a disclosure. Progressive disclosure applies to
+   * errors too: the plain sentence first, the server's own words on demand for
+   * whoever is going to file the bug.
+   */
+  technical?: string;
+}
+
+/**
+ * A failure the person can act on.
+ *
+ * Error states decide long-term trust more than success states do: a success
+ * path is forgotten the moment it works, while a dead end is remembered, and
+ * on a pod app failures are *routine* — an expired token, a pod that moved, a
+ * provider that is down. None of those are the user's mistake, and all of them
+ * are the moment they decide whether this thing is trustworthy.
+ *
+ * So the rule is acknowledgment plus a way forward, and it is enforced rather
+ * than asked for: **throws when there is neither an `action` nor a `recovery`
+ * sentence.** An error screen that only announces the failure hands the person
+ * a dead end and makes it their problem. If nothing can be retried, say so in
+ * `recovery` — "your session ended; signing in again will bring this back" is
+ * a way forward even when no button can be offered.
+ *
+ * `role="alert"` because a failure interrupts: it is the one thing on the
+ * screen that must not wait for a pause in the reading order.
+ */
+export function renderError(state: ErrorState): string {
+  if (!state.action && !state.recovery) {
+    throw new Error(
+      `Error state "${state.title}" offers no way forward. Give it an action, or ` +
+        `a recovery sentence saying why there is none — see src/ui/ux.ts. An error ` +
+        `that only announces the failure makes it the user's problem.`
+    );
+  }
+
+  return `
+    <div class="error-state" role="alert">
+      <h2>${esc(state.title)}</h2>
+      <p class="error">${esc(state.detail)}</p>
+      ${state.recovery ? `<p class="lead">${esc(state.recovery)}</p>` : ""}
+      ${
+        state.action
+          ? `<p><button id="${esc(state.action.id)}">${esc(state.action.label)}</button></p>`
+          : ""
+      }
+      ${
+        state.technical
+          ? `<details class="error-technical">
+               <summary>What the server said</summary>
+               <pre><code>${esc(state.technical)}</code></pre>
+             </details>`
+          : ""
+      }
+    </div>`;
+}
+
 /* ── Pending ──────────────────────────────────────────────────────────────── */
 
 /**
  * Waiting on the network — which, for a pod app, is most first loads.
  *
- * Says what is being waited for rather than spinning anonymously: "Finding your
- * pod" is diagnosable when it hangs, a bare spinner is not. `role="status"`
- * announces it without stealing focus.
+ * Says what is being waited for rather than spinning anonymously: "Looking for
+ * your pod" is diagnosable when it hangs, a bare spinner is not. Phrased as
+ * looking rather than finding, because it may not find it — a status line that
+ * assumes success is the same dishonesty as an error with no way forward.
+ *
+ * The indicator is a travelling line rather than a rotating spinner. A rotation
+ * has no start and no end, so after a few seconds it stops reading as progress
+ * and starts reading as frozen; a line that crosses and restarts keeps saying
+ * "still working" without ever claiming to know how far along it is.
+ *
+ * `role="status"` announces it without stealing focus.
  */
 export function renderPending(message: string): string {
   return `
     <div class="pending" role="status">
-      <span class="pending-spinner" aria-hidden="true"></span>
       <span>${esc(message)}</span>
+      <span class="pending-track" aria-hidden="true"><span class="pending-line"></span></span>
     </div>`;
+}
+
+/**
+ * A pending state that respects both ends of the wait.
+ *
+ * Two thresholds, and both exist because an indeterminate wait misleads at
+ * either extreme:
+ *
+ *   - Under `PENDING_DELAY_MS` nothing is shown at all. A spinner that appears
+ *     and vanishes inside 200ms is read as a glitch, and most warm pod reads
+ *     land there.
+ *   - After `PENDING_PATIENCE_MS` the message is replaced by `patience` — a
+ *     line that admits this is taking too long. Looping the same indicator
+ *     indefinitely tells a person nothing they cannot already see.
+ *
+ * Returns a `stop` function. Call it when the work settles, whether it
+ * succeeded or failed — leaving it running is how a screen ends up claiming to
+ * be loading something that already failed.
+ */
+export function mountPending(
+  container: HTMLElement,
+  message: string,
+  options: { patience?: string; delayMs?: number; patienceMs?: number } = {}
+): () => void {
+  const {
+    patience,
+    delayMs = PENDING_DELAY_MS,
+    patienceMs = PENDING_PATIENCE_MS,
+  } = options;
+
+  const timers: number[] = [];
+
+  timers.push(
+    window.setTimeout(() => {
+      container.innerHTML = renderPending(message);
+
+      if (patience) {
+        timers.push(
+          window.setTimeout(() => {
+            const line = container.querySelector(".pending span");
+            if (line) line.textContent = patience;
+            // Announced as well as swapped: the change is a single line of text
+            // in a region nobody is looking at by this point.
+            announce(patience);
+          }, patienceMs - delayMs)
+        );
+      }
+    }, delayMs)
+  );
+
+  return () => timers.forEach((t) => clearTimeout(t));
 }
 
 /* ── Undo toast ───────────────────────────────────────────────────────────── */
@@ -263,17 +408,24 @@ export function toast(
     <button class="toast-close ghost" aria-label="Dismiss">✕</button>`;
 
   const dismiss = () => {
-    if (toastTimer !== undefined) clearTimeout(toastTimer);
+    // Only clear the timer if it is still *this* toast's. An `undo` callback
+    // that shows its own confirmation toast ("Restored.") installs a new timer
+    // before this runs; clearing that one left the replacement on screen
+    // forever, which is the opposite of the "one toast at a time" rule.
+    if (timer !== undefined && toastTimer === timer) clearTimeout(toastTimer);
     el.remove();
     onDismiss?.();
   };
 
   el.querySelector(".toast-undo")?.addEventListener("click", () => {
-    undo?.();
+    // Dismissed before `undo` runs, for the same reason: undo may open the
+    // next toast, and this one must be gone by then.
     dismiss();
+    undo?.();
   });
   el.querySelector(".toast-close")?.addEventListener("click", dismiss);
 
   document.body.appendChild(el);
-  toastTimer = window.setTimeout(dismiss, durationMs);
+  const timer = window.setTimeout(dismiss, durationMs);
+  toastTimer = timer;
 }

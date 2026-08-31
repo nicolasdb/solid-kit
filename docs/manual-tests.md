@@ -197,4 +197,24 @@ an app is built on it.
 - Does the copy name things as a person would recognize them — a pod, a name on
   the web, who can see what — rather than as the system is built?
 
+Error states carry their own questions, because `renderError` can enforce that
+there *is* a way forward but not that the way forward is any good:
+
+- Does every error say **what happened**, **which resource refused**, and **what
+  to do next** — and is the "what to do next" something the person can actually
+  do from where they are standing?
+- Does the copy avoid implying the failure was **their mistake**? An expired
+  token, a provider down and a moved pod are all the system's doing.
+- Does it say what happened to **their work**? "Nothing was lost" is the
+  sentence people are actually looking for, and it must be true when written.
+- Is the raw failure available on demand and **not** on the screen by default?
+
+And two from the laws the kit follows without a machine check
+([`ux-principles.md`](ux-principles.md)):
+
+- Can someone who **skipped every explanation** still use the app? The paradox
+  of the active user says most people will, whatever the onboarding does.
+- Does the sign-in field accept the address in whatever shape the person has it
+  — WebID, pod URL, with or without a trailing slash?
+
 See [`ux-principles.md`](ux-principles.md) for where these come from.

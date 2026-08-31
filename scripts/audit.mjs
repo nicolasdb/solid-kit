@@ -212,15 +212,14 @@ if (!visuallyHidden) {
   );
 }
 
-// A spinner whose animation is merely removed under reduced-motion sits frozen
-// mid-rotation and reads as broken. The signal has to be replaced, not dropped.
+// An indicator whose animation is merely removed under reduced-motion sits
+// parked mid-travel and reads as broken. The signal has to be replaced, not
+// dropped.
 const reducedMotionBlocks = patternsCss.match(
   /@media\s*\(prefers-reduced-motion[^{]*\{[\s\S]*?\n\}/g
 );
-if (!reducedMotionBlocks?.some((b) => /\.pending-spinner/.test(b))) {
-  failures.push(
-    "patterns.css does not give .pending-spinner a reduced-motion alternative."
-  );
+if (!reducedMotionBlocks?.some((b) => /\.pending-line/.test(b))) {
+  failures.push("patterns.css does not give .pending-line a reduced-motion alternative.");
 }
 
 // The toast carries a time-limited action at the bottom of the screen, which is
@@ -242,6 +241,21 @@ for (const [constant, fn] of [
   } else {
     notes.push(`  ok  ${fn} enforces ${constant}`);
   }
+}
+
+// An error state with no way forward is a dead end, and dead ends are what
+// people remember about an app. The rule is only real while renderError throws.
+const renderError = blockAfter(patternsTs, /export function renderError\(/);
+if (!/export const ERRORS_MUST_OFFER_RECOVERY/.test(uxTs)) {
+  failures.push("ux.ts no longer states ERRORS_MUST_OFFER_RECOVERY.");
+} else if (!renderError) {
+  failures.push("patterns.ts exports no renderError — error states are unenforced.");
+} else if (!/state\.action && !state\.recovery[\s\S]*throw new Error/.test(renderError)) {
+  failures.push(
+    "renderError no longer throws on an error state with neither an action nor a recovery line."
+  );
+} else {
+  notes.push("  ok  renderError refuses an error state with no way forward");
 }
 
 /* ── report ───────────────────────────────────────────────────────────────── */

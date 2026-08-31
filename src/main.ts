@@ -12,10 +12,10 @@ import "./styles/core.css";
 import "./styles/theme.css";
 import "./styles/patterns.css";
 import { completeLogin, getSession, loginWithIdentifier, logout } from "./lib/auth";
-import { describePodError, getPrimaryPodUrl } from "./lib/pod";
+import { describePodError, getPrimaryPodUrl, isAuthError } from "./lib/pod";
 import { APP_NAME, DEFAULT_IDENTIFIER } from "./config";
 import { focusView } from "./ui/a11y";
-import { renderPending } from "./ui/patterns";
+import { renderError, renderPending } from "./ui/patterns";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -91,19 +91,34 @@ function renderLoadingView(webId: string): void {
     <main class="screen stack">
       <h1 class="visually-hidden" data-view-title>Connecting</h1>
       <p class="lead">Signed in as <code>${esc(webId)}</code>.</p>
-      ${renderPending("Finding your pod…")}
+      ${renderPending("Looking for your pod…")}
     </main>
   `;
   focusView(app);
 }
 
+/**
+ * Pod discovery failed — which, on a pod app, is a routine outcome rather than
+ * an exceptional one, and never the user's mistake.
+ *
+ * Rendered by `renderError` rather than by hand so it cannot become a dead end:
+ * the component refuses an error state that offers no way forward. An expired
+ * session is the common case here and it has a real answer — sign in again —
+ * so the copy says that rather than leaving someone staring at a status code.
+ */
 function renderErrorView(webId: string, err: unknown): void {
   app.innerHTML = `
     <main class="screen stack">
-      <h1>Something went wrong</h1>
-      <p class="lead">Signed in as <code>${esc(webId)}</code>.</p>
-      <p class="error">${esc(describePodError(err))}</p>
-      <div><button id="logout" class="ghost">Sign out</button></div>
+      ${renderError({
+        title: isAuthError(err) ? "Your session ended" : "Could not reach your pod",
+        detail: describePodError(err),
+        recovery: isAuthError(err)
+          ? "Nothing was lost — your work is in the pod, not in this tab. Signing in again brings it back."
+          : "Your pod is unaffected. This is about reaching it from here, not about what is in it.",
+        action: { label: "Sign in again", id: "logout" },
+        technical: err instanceof Error ? err.message : String(err),
+      })}
+      <p class="meta">Signed in as <code>${esc(webId)}</code>.</p>
     </main>
   `;
   document.querySelector<HTMLButtonElement>("#logout")!.addEventListener("click", async () => {

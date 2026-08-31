@@ -14,14 +14,22 @@ import "./styles/core.css";
 import "./styles/theme.css";
 import "./styles/patterns.css";
 import "./styles/guidelines.css";
-import { MAX_CHOICES, MAX_CHUNKS_PER_STEP, UNDO_WINDOW_MS } from "./ui/ux";
+import {
+  MAX_CHOICES,
+  MAX_CHUNKS_PER_STEP,
+  PENDING_DELAY_MS,
+  PENDING_PATIENCE_MS,
+  UNDO_WINDOW_MS,
+} from "./ui/ux";
 import {
   esc,
   mountCheckpoint,
   renderCheckpoint,
   renderConceptCard,
   renderEmptyState,
+  renderError,
   renderPending,
+  mountPending,
   renderPhaseRail,
   toast,
   type Checkpoint,
@@ -84,16 +92,27 @@ const CHECKPOINT: Checkpoint = {
 
 /* ── Sections ─────────────────────────────────────────────────────────────── */
 
+/**
+ * `title` and `lead` are plain sentences and are escaped. `body` is markup —
+ * `demo()` output, or a hand-written block — and is interpolated raw, which is
+ * why it is the last parameter and named for what it is.
+ */
 function section(id: string, title: string, lead: string, body: string): string {
   return `
-    <section id="${id}">
+    <section id="${esc(id)}">
       <h2>${esc(title)}</h2>
-      <p class="lead">${lead}</p>
+      <p class="lead">${esc(lead)}</p>
       ${body}
     </section>`;
 }
 
-/** A live demo beside the rule it embodies. */
+/**
+ * A live demo beside the rule it embodies.
+ *
+ * `markup` and `note` are both raw — the first is a rendered component, and the
+ * notes carry `<code>` and `<strong>` throughout. Only `label` is a plain
+ * string, so only `label` is escaped.
+ */
 function demo(label: string, markup: string, note?: string): string {
   return `
     <div class="demo">
@@ -220,17 +239,67 @@ function render(): void {
       )}
 
       ${section(
-        "pending",
-        "Say what you are waiting for",
-        `Most first loads in a pod app wait on the network. An anonymous spinner
-         is undiagnosable when it hangs.`,
+        "errors",
+        "The failure path is the trust path",
+        `Error states decide long-term trust more than success states do. A
+         success is forgotten the moment it works; a dead end is remembered —
+         and on a pod app, failures are routine rather than exceptional.`,
         demo(
-          "renderPending",
-          renderPending("Finding your pod…"),
-          `Carries <code>role="status"</code>, so it is announced without
-           stealing focus. Under <code>prefers-reduced-motion</code> the spin is
-           replaced rather than removed — a frozen spinner reads as broken.`
+          "renderError",
+          renderError({
+            title: "Your session ended",
+            detail:
+              "Access refused (401) on https://pod.nicolasdb.eu/nicolas/seances/ — the session has expired, or this pod does not belong to your account.",
+            recovery:
+              "Nothing was lost. Signing in again brings this straight back — your work is in the pod, not in this tab.",
+            action: { label: "Sign in again", id: "demo-error-action" },
+            technical: '401 Unauthorized\nWWW-Authenticate: Bearer realm="solid"',
+          }),
+          `<code>renderError</code> <strong>throws</strong> when given neither an
+           action nor a recovery line — an error that only announces the failure
+           makes it the user's problem. The detail line here is
+           <code>describePodError</code>'s own output: which resource refused and
+           why, never a bare status code. The raw response stays behind a
+           disclosure, because progressive disclosure applies to failures too.
+           None of these failures are the user's mistake, and the copy never
+           implies otherwise.`
         )
+      )}
+
+      ${section(
+        "pending",
+        "Say what you are waiting for, and for how long",
+        `Most first loads in a pod app wait on a network nobody here owns. An
+         anonymous spinner is undiagnosable when it hangs — and Doherty's
+         threshold cuts the other way too: shown instantly, it is a flicker.`,
+        `
+        <div class="demo">
+          <p class="label-mono">renderPending</p>
+          <div class="demo-stage">${renderPending("Looking for your pod…")}</div>
+          <p class="meta">
+            <em>Looking</em>, not <em>finding</em> — it may not find it, and a
+            status line that assumes success is the same dishonesty as an error
+            with no way forward. The indicator travels rather than rotates: a
+            rotation that has gone round eighty times looks exactly like one
+            that is stuck.
+          </p>
+        </div>
+        <div class="demo">
+          <p class="label-mono">mountPending</p>
+          <div class="demo-stage">
+            <button id="demo-pending" class="ghost">Start a slow lookup</button>
+            <div id="demo-pending-stage"></div>
+          </div>
+          <p class="meta">
+            Nothing appears for the first
+            <strong>${PENDING_DELAY_MS}ms</strong> — below that a spinner is a
+            glitch, and most warm reads land there. After
+            <strong>${PENDING_PATIENCE_MS / 1000}s</strong> the line stops
+            repeating itself and admits the wait is long. Looping the same
+            message forever tells a person nothing they cannot already see.
+            <code>role="status"</code> throughout, so none of it steals focus.
+          </p>
+        </div>`
       )}
 
       ${section(
@@ -299,6 +368,20 @@ function wire(): void {
 
   root.querySelector("#demo-empty-action")?.addEventListener("click", () => {
     toast("This is where the app would take over.");
+  });
+
+  root.querySelector("#demo-error-action")?.addEventListener("click", () => {
+    toast("This is where the app would send you back through sign-in.");
+  });
+
+  // Deliberately never resolves: the point of the demo is the two thresholds,
+  // which are only visible if the wait outlasts both.
+  root.querySelector("#demo-pending")?.addEventListener("click", () => {
+    const stage = root.querySelector<HTMLElement>("#demo-pending-stage");
+    if (!stage) return;
+    mountPending(stage, "Looking for your pod\u2026", {
+      patience: "Still looking \u2014 your provider may be slow to answer, or the address may be wrong.",
+    });
   });
 
   root.querySelector("#demo-focus")?.addEventListener("click", () => {

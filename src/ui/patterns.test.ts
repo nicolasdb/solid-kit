@@ -5,11 +5,19 @@ import {
   mountCheckpoint,
   renderPhaseRail,
   renderEmptyState,
+  renderError,
   renderPending,
+  mountPending,
   toast,
   esc,
 } from "./patterns";
-import { MAX_CHUNKS_PER_STEP, MAX_CHOICES, UNDO_WINDOW_MS } from "./ux";
+import {
+  MAX_CHUNKS_PER_STEP,
+  MAX_CHOICES,
+  PENDING_DELAY_MS,
+  PENDING_PATIENCE_MS,
+  UNDO_WINDOW_MS,
+} from "./ux";
 
 /** Renders a markup string into a detached container for querying. */
 function mount(markup: string): HTMLElement {
@@ -171,13 +179,124 @@ describe("renderEmptyState", () => {
   });
 });
 
+describe("renderError", () => {
+  it("throws on an error state that offers no way forward", () => {
+    // The rule that makes error states worth having. An error screen that only
+    // announces the failure hands the person a dead end, and dead ends are what
+    // gets remembered about an app.
+    expect(() =>
+      renderError({ title: "Could not load", detail: "Request failed (500) on /x." })
+    ).toThrow(/no way forward/);
+  });
+
+  it("accepts a recovery sentence when no action can be offered", () => {
+    const host = mount(
+      renderError({
+        title: "Your session ended",
+        detail: "Access refused (401) on https://pod.example/private/.",
+        recovery: "Signing in again will bring this back — nothing was lost.",
+      })
+    );
+
+    expect(host.textContent).toContain("Signing in again");
+    expect(host.querySelector("button")).toBeNull();
+  });
+
+  it("interrupts, because a failure cannot wait for a pause", () => {
+    const host = mount(
+      renderError({ title: "Offline", detail: "No response.", recovery: "Retry in a moment." })
+    );
+    expect(host.querySelector(".error-state")?.getAttribute("role")).toBe("alert");
+  });
+
+  it("keeps the raw failure behind a disclosure rather than on the screen", () => {
+    const host = mount(
+      renderError({
+        title: "Could not save",
+        detail: "Request failed (507) on https://pod.example/notes/.",
+        action: { label: "Try again", id: "retry" },
+        technical: '{"error":"insufficient storage"}',
+      })
+    );
+
+    expect(host.querySelector("#retry")?.textContent).toBe("Try again");
+    expect(host.querySelector("details.error-technical")?.textContent).toContain(
+      "insufficient storage"
+    );
+  });
+
+  it("escapes the failure text — server messages are not trusted markup", () => {
+    const host = mount(
+      renderError({
+        title: "Failed",
+        detail: "<img src=x onerror=alert(1)>",
+        recovery: "Try again.",
+      })
+    );
+    expect(host.querySelector("img")).toBeNull();
+  });
+});
+
 describe("renderPending", () => {
   it("says what it is waiting for, and announces without stealing focus", () => {
-    const host = mount(renderPending("Finding your pod…"));
+    const host = mount(renderPending("Looking for your pod…"));
 
-    expect(host.textContent).toContain("Finding your pod…");
+    expect(host.textContent).toContain("Looking for your pod…");
     expect(host.querySelector(".pending")?.getAttribute("role")).toBe("status");
-    expect(host.querySelector(".pending-spinner")?.getAttribute("aria-hidden")).toBe("true");
+    expect(host.querySelector(".pending-track")?.getAttribute("aria-hidden")).toBe("true");
+  });
+});
+
+describe("mountPending", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("shows nothing below the Doherty threshold", () => {
+    const host = mount("");
+    const stop = mountPending(host, "Looking for your pod…");
+
+    vi.advanceTimersByTime(PENDING_DELAY_MS - 1);
+    // A spinner that appears and vanishes inside 400ms reads as a glitch.
+    expect(host.querySelector(".pending")).toBeNull();
+
+    vi.advanceTimersByTime(2);
+    expect(host.textContent).toContain("Looking for your pod…");
+    stop();
+  });
+
+  it("stops cleanly before it ever shows — the fast path", () => {
+    const host = mount("");
+    mountPending(host, "Looking for your pod…")();
+
+    vi.advanceTimersByTime(PENDING_DELAY_MS * 10);
+    expect(host.querySelector(".pending")).toBeNull();
+  });
+
+  it("admits it is taking too long instead of looping in silence", () => {
+    const host = mount("");
+    const stop = mountPending(host, "Looking for your pod…", {
+      patience: "Still looking — your provider may be slow to answer.",
+    });
+
+    vi.advanceTimersByTime(PENDING_PATIENCE_MS - 1);
+    expect(host.textContent).toContain("Looking for your pod…");
+
+    vi.advanceTimersByTime(2);
+    expect(host.textContent).toContain("your provider may be slow");
+    // Nobody is watching a status line by ten seconds in.
+    expect(document.querySelector("[aria-live]")?.textContent).toContain("Still looking");
+    stop();
+  });
+
+  it("does not escalate after it has been stopped", () => {
+    const host = mount("");
+    const stop = mountPending(host, "Looking…", { patience: "Still looking…" });
+
+    vi.advanceTimersByTime(PENDING_DELAY_MS + 1);
+    stop();
+    vi.advanceTimersByTime(PENDING_PATIENCE_MS);
+
+    expect(host.textContent).not.toContain("Still looking…");
   });
 });
 
@@ -236,5 +355,17 @@ describe("toast", () => {
   it("escapes the message", () => {
     toast("<script>alert(1)</script>");
     expect(document.querySelector(".toast script")).toBeNull();
+  });
+
+  it("still dismisses a toast opened BY the undo callback", () => {
+    // The timer is module-level: undo's own toast installed a new one, and the
+    // dismiss that followed cleared it, leaving "Restored." on screen forever.
+    toast("Deleted.", { undo: () => toast("Restored.") });
+    document.querySelector<HTMLButtonElement>(".toast-undo")!.click();
+
+    expect(document.querySelector(".toast")?.textContent).toContain("Restored.");
+
+    vi.advanceTimersByTime(UNDO_WINDOW_MS + 1);
+    expect(document.querySelector(".toast")).toBeNull();
   });
 });
