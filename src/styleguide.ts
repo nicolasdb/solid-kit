@@ -274,17 +274,20 @@ function render(): void {
       </footer>
     </div>
   `;
-
-  wireThemeSwitch();
 }
 
 /**
  * Three states, not two: an explicit choice stamps `data-theme`, and "system"
  * removes the stamp so `prefers-color-scheme` decides. Exercising all three is
  * the only way to catch a token defined in one mode but not the other.
+ *
+ * Wired once, via delegation on `root`: `render()` replaces the buttons'
+ * DOM nodes on every theme change, so listeners attached directly to them
+ * would need re-wiring after each render — and re-wiring from inside
+ * `render()` is what previously caused unbounded render→wire→apply→render
+ * recursion the instant a button was clicked.
  */
 function wireThemeSwitch(): void {
-  const buttons = root.querySelectorAll<HTMLButtonElement>("[data-theme-set]");
   const stored = localStorage.getItem("solid-kit:styleguide-theme") ?? "system";
 
   const apply = (choice: string) => {
@@ -297,21 +300,23 @@ function wireThemeSwitch(): void {
       // Storage unavailable: the theme still applies for this page view.
     }
 
-    buttons.forEach((b) =>
-      b.setAttribute("aria-pressed", String(b.dataset.themeSet === choice))
-    );
+    root
+      .querySelectorAll<HTMLButtonElement>("[data-theme-set]")
+      .forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeSet === choice)));
+
     // Contrast figures depend on the active theme, so recompute them.
     if (root.dataset.rendered === "true") render();
   };
 
-  buttons.forEach((b) =>
-    b.addEventListener("click", () => {
-      root.dataset.rendered = "true";
-      apply(b.dataset.themeSet!);
-    })
-  );
+  root.addEventListener("click", (e) => {
+    const button = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-theme-set]");
+    if (!button) return;
+    root.dataset.rendered = "true";
+    apply(button.dataset.themeSet!);
+  });
 
   apply(stored);
 }
 
 render();
+wireThemeSwitch();
