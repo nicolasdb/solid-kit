@@ -100,6 +100,33 @@ const TYPE_ROLES = [
 const SPACE_STEPS = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20];
 const RADII = ["--radius-none", "--radius-sm", "--radius-md", "--radius-lg"];
 
+/**
+ * Three states, not two: an explicit choice stamps `data-theme`, and "system"
+ * removes the stamp so `prefers-color-scheme` decides.
+ *
+ * Held here rather than read back off the DOM because "system" and "light"
+ * both resolve to the same tokens on a light OS — only the stored choice can
+ * tell them apart, and the switch has to show which one is actually selected.
+ */
+type ThemeChoice = "light" | "dark" | "system";
+
+let currentTheme: ThemeChoice = "system";
+
+/** Restores the stored choice. Run before the first render. */
+function applyStoredTheme(): void {
+  let stored: string | null = null;
+  try {
+    stored = localStorage.getItem("solid-kit:styleguide-theme");
+  } catch {
+    // Storage unavailable: fall through to the system default.
+  }
+  currentTheme =
+    stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+
+  if (currentTheme === "system") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", currentTheme);
+}
+
 function swatchRow(token: string, against?: string): string {
   const value = readToken(token);
   let badge = "";
@@ -152,9 +179,15 @@ function render(): void {
         <div class="sg-themes">
           <span class="label-mono">Theme</span>
           <div class="sg-switch" role="group" aria-label="Theme">
-            <button data-theme-set="light" class="ghost">Light</button>
-            <button data-theme-set="dark" class="ghost">Dark</button>
-            <button data-theme-set="system" class="ghost">System</button>
+            ${(["light", "dark", "system"] as ThemeChoice[])
+              .map(
+                (choice) => `
+              <button data-theme-set="${choice}" class="ghost"
+                      aria-pressed="${choice === currentTheme}">
+                ${choice[0].toUpperCase()}${choice.slice(1)}
+              </button>`
+              )
+              .join("")}
           </div>
         </div>
       </header>
@@ -288,9 +321,9 @@ function render(): void {
  * recursion the instant a button was clicked.
  */
 function wireThemeSwitch(): void {
-  const stored = localStorage.getItem("solid-kit:styleguide-theme") ?? "system";
+  const apply = (choice: ThemeChoice) => {
+    currentTheme = choice;
 
-  const apply = (choice: string) => {
     if (choice === "system") document.documentElement.removeAttribute("data-theme");
     else document.documentElement.setAttribute("data-theme", choice);
 
@@ -300,23 +333,20 @@ function wireThemeSwitch(): void {
       // Storage unavailable: the theme still applies for this page view.
     }
 
-    root
-      .querySelectorAll<HTMLButtonElement>("[data-theme-set]")
-      .forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeSet === choice)));
-
-    // Contrast figures depend on the active theme, so recompute them.
-    if (root.dataset.rendered === "true") render();
+    // Contrast figures depend on the active theme, so recompute them. The
+    // pressed state is NOT patched onto the buttons here — render() emits it
+    // from `currentTheme`, so it survives the re-render instead of being
+    // wiped by it.
+    render();
   };
 
   root.addEventListener("click", (e) => {
     const button = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-theme-set]");
     if (!button) return;
-    root.dataset.rendered = "true";
-    apply(button.dataset.themeSet!);
+    apply(button.dataset.themeSet as ThemeChoice);
   });
-
-  apply(stored);
 }
 
+applyStoredTheme();
 render();
 wireThemeSwitch();
