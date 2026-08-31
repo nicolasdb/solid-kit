@@ -10,6 +10,9 @@ export default defineConfig({
         // The design system, built and deployed alongside it so it has a URL.
         // See docs/manual-tests.md — it is how the theme is checked by eye.
         styleguide: resolve(import.meta.dirname, "styleguide.html"),
+        // The UX patterns, running. Same reason: a guideline you can click is
+        // one that cannot drift from the components it describes.
+        guidelines: resolve(import.meta.dirname, "guidelines.html"),
       },
     },
   },

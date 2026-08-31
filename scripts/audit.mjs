@@ -22,6 +22,9 @@ import { dirname, join } from "node:path";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const themeCss = readFileSync(join(root, "src/styles/theme.css"), "utf8");
 const coreCss = readFileSync(join(root, "src/styles/core.css"), "utf8");
+const patternsCss = readFileSync(join(root, "src/styles/patterns.css"), "utf8");
+const patternsTs = readFileSync(join(root, "src/ui/patterns.ts"), "utf8");
+const uxTs = readFileSync(join(root, "src/ui/ux.ts"), "utf8");
 
 const failures = [];
 const notes = [];
@@ -188,6 +191,57 @@ if (!/@media\s*\(prefers-reduced-motion/.test(coreCss)) {
 }
 if (!/env\(safe-area-inset/.test(coreCss)) {
   failures.push("core.css uses no safe-area insets — content will sit under the notch.");
+}
+
+/* ── 4. UX patterns ───────────────────────────────────────────────────────── */
+
+/*
+  The parts of the UX guidelines a machine can decide. The rest is judgment and
+  lives in docs/manual-tests.md — but these three have been got wrong in real
+  code, so they are worth pinning here rather than trusting to review.
+*/
+
+// A visually-hidden helper built on display:none removes the element from the
+// accessibility tree entirely, which defeats the point of having one.
+const visuallyHidden = blockAfter(patternsCss, /\.visually-hidden\s*\{/);
+if (!visuallyHidden) {
+  failures.push("patterns.css defines no .visually-hidden — announcements have nowhere to live.");
+} else if (/display\s*:\s*none/.test(visuallyHidden)) {
+  failures.push(
+    ".visually-hidden uses display:none, which hides it from assistive tech too."
+  );
+}
+
+// A spinner whose animation is merely removed under reduced-motion sits frozen
+// mid-rotation and reads as broken. The signal has to be replaced, not dropped.
+const reducedMotionBlocks = patternsCss.match(
+  /@media\s*\(prefers-reduced-motion[^{]*\{[\s\S]*?\n\}/g
+);
+if (!reducedMotionBlocks?.some((b) => /\.pending-spinner/.test(b))) {
+  failures.push(
+    "patterns.css does not give .pending-spinner a reduced-motion alternative."
+  );
+}
+
+// The toast carries a time-limited action at the bottom of the screen, which is
+// exactly where the gesture bar is.
+const toastBlock = blockAfter(patternsCss, /\.toast\s*\{/);
+if (!toastBlock || !/env\(safe-area-inset-bottom\)/.test(toastBlock)) {
+  failures.push(".toast does not clear the bottom safe-area inset.");
+}
+
+// The limits are only real if the components enforce them.
+for (const [constant, fn] of [
+  ["MAX_CHUNKS_PER_STEP", "renderConceptCard"],
+  ["MAX_CHOICES", "renderCheckpoint"],
+]) {
+  if (!new RegExp(`export const ${constant}`).test(uxTs)) {
+    failures.push(`ux.ts no longer exports ${constant}.`);
+  } else if (!new RegExp(`${constant}`).test(patternsTs)) {
+    failures.push(`${fn} does not reference ${constant} — the limit is unenforced.`);
+  } else {
+    notes.push(`  ok  ${fn} enforces ${constant}`);
+  }
 }
 
 /* ── report ───────────────────────────────────────────────────────────────── */

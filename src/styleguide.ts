@@ -299,7 +299,7 @@ function render(): void {
       </section>
 
       <footer class="sg-footer meta">
-        <p><a href="/">← Back to the app</a></p>
+        <p><a href="/">← Back to the app</a> · <a href="/guidelines.html">UX guidelines</a></p>
         <p>
           Checked by <code>npm run audit</code>. Live login is verified by hand —
           see <code>docs/manual-tests.md</code>.

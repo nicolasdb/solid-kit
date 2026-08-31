@@ -19,11 +19,11 @@ most valuable content in the files, not noise to trim.
 
 ```bash
 npm install
-npm run dev      # Vite dev server — app at /, design system at /styleguide.html
+npm run dev      # app at /, /styleguide.html, /guidelines.html
 npm run verify   # typecheck + tests + audit; the gate before adopting a version
 npm test         # vitest
 npm run audit    # contrast, token completeness, a11y affordances
-npm run build    # tsc && vite build (two entries: index.html, styleguide.html)
+npm run build    # tsc && vite build (three entries: index, styleguide, guidelines)
 make             # lists deploy targets, generated from `## ` comments
 ```
 
@@ -32,16 +32,28 @@ make             # lists deploy targets, generated from `## ` comments
 1. **`npm run verify`** — automated. Tests cover the logic carrying a "this
    broke before" comment; the audit enforces the contrast and token-completeness
    rules that would otherwise be comments nobody re-checks.
-2. **`/styleguide.html`** — the design system read back from its own live CSS.
-   Never hardcode a value into it; a styleguide that restates the palette cannot
-   catch drift, which is its only job.
+2. **`/styleguide.html`** and **`/guidelines.html`** — the design system read
+   back from its own live CSS, and the UX patterns rendered by the same
+   functions an app calls. Never hardcode a value into either; a reference page
+   that restates what it documents cannot catch drift, which is its only job.
 3. **`docs/manual-tests.md`** — sign-in and the mobile layout, run by hand
    against a live provider. **Not covered by 1 or 2, and never claim otherwise.**
    A kit version is not validated until that suite has been run.
 
-When adding to `src/lib/`, add the test with it — kit code is copied, so a bug
-here is found three times instead of once. Tests are mocked at `./auth`, so they
-need no pod.
+When adding to `src/lib/` or `src/ui/`, add the test with it — kit code is
+copied, so a bug here is found three times instead of once. Tests are mocked at
+`./auth`, so they need no pod.
+
+### Setting a UX preference
+
+Three tiers; use the strongest that fits. A constant in `src/ui/ux.ts` (checked
+by the audit), a component in `src/ui/patterns.ts` (enforced by use), or a
+review question in `docs/manual-tests.md` (judgment). Never work around a
+constant inside a component — that is how the tiers stop meaning anything.
+
+A component that enforces a limit **throws** rather than truncating. Silently
+dropping authored copy loses work nobody notices; throwing surfaces the decision
+while the copy can still be reconsidered.
 
 ## Architecture
 
@@ -69,6 +81,9 @@ introduce a component system without a reason bigger than taste.
 - `src/styles/core.css` — structure and the slot contract. Project-agnostic:
   never edit it per app. `src/styles/theme.css` is the file to fork for a
   different look.
+- `src/ui/` — the UX layer. `ux.ts` holds the preferences that are values,
+  `patterns.ts` the components that enforce them, `a11y.ts` the focus and
+  announcement helpers the shell calls on every render.
 
 ### Pod-root discovery
 
