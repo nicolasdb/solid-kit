@@ -17,6 +17,7 @@ for why, and when that should change.
 ```bash
 git clone https://github.com/nicolasdb/solid-kit my-app && cd my-app
 rm -rf .git && git init
+sudo chown -R 1000:1000 "/home/nicolas/.npm"
 npm install
 npm run dev
 ```
