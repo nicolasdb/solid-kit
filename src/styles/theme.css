@@ -171,6 +171,23 @@ code {
   overflow-wrap: anywhere;
 }
 
+a {
+  color: var(--accent);
+  /* Underlined, not colour-only: colour alone is not an affordance, and the
+     accent is the same hue in both themes. */
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+hr {
+  border: 0;
+  border-top: var(--border-width) solid var(--border-subtle);
+  margin: var(--space-2) 0;
+}
+
 .lead {
   color: var(--text-secondary);
   max-width: var(--measure-body);

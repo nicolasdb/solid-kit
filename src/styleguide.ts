@@ -266,8 +266,11 @@ function render(): void {
       </section>
 
       <footer class="sg-footer meta">
-        Checked by <code>npm run audit</code>. Live login is verified by hand —
-        see <code>docs/manual-tests.md</code>.
+        <p><a href="/">← Back to the app</a></p>
+        <p>
+          Checked by <code>npm run audit</code>. Live login is verified by hand —
+          see <code>docs/manual-tests.md</code>.
+        </p>
       </footer>
     </div>
   `;

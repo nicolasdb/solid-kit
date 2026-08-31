@@ -17,10 +17,15 @@ for why, and when that should change.
 ```bash
 git clone https://github.com/nicolasdb/solid-kit my-app && cd my-app
 rm -rf .git && git init
-sudo chown -R 1000:1000 "/home/nicolas/.npm"
+# Only if npm install fails with EACCES on the cache — a root-owned ~/.npm,
+# usually left behind by an earlier `sudo npm`:
+sudo chown -R "$(id -u):$(id -g)" ~/.npm
 npm install
 npm run dev
 ```
+
+The app is at `/`; the design system is at `/styleguide.html`, linked from the
+home screen once you are signed in.
 
 Then, in order:
 
@@ -34,7 +39,8 @@ Then, in order:
    into `hetzner-gateway` as `nginx/conf.d/<order>-<slug>.conf` and deploy from
    there. That repo stays the source of truth for routing.
 6. `src/main.ts` — replace `renderHome`. Everything above it is the part worth
-   keeping.
+   keeping. The link to the design system lives inside `renderHome`, so
+   replacing it removes the link too — nothing to configure off.
 
 ## What's in it
 

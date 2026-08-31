@@ -107,6 +107,12 @@ function renderErrorView(webId: string, err: unknown): void {
  * Replace this. It exists to prove the chain end to end — session, WebID, pod
  * root — so a new app starts from something known to work rather than from a
  * blank file.
+ *
+ * The link to the design system lives HERE, in the placeholder, rather than in
+ * the shell above: replacing this function is what removes it. An app built
+ * from the kit gets no stray "design system" link pointing at a page its users
+ * have no business seeing, and nothing has to be remembered or configured off.
+ * The styleguide itself still ships in `dist/` — reach it at /styleguide.html.
  */
 async function renderHome(webId: string, podUrl: string): Promise<void> {
   app.innerHTML = `
@@ -131,6 +137,19 @@ async function renderHome(webId: string, podUrl: string): Promise<void> {
         Session id <code>${esc(getSession().info.sessionId)}</code> — must be
         unique per app, see src/config.ts.
       </p>
+
+      <hr />
+
+      <nav class="stack">
+        <p class="label-mono">Kit reference</p>
+        <p>
+          <a href="/styleguide.html">Design system</a>
+          <span class="meta">
+            — tokens, type scale and components, with live contrast ratios.
+          </span>
+        </p>
+        <p class="meta">This block goes when you replace <code>renderHome</code>.</p>
+      </nav>
     </main>
   `;
   document.querySelector<HTMLButtonElement>("#logout")!.addEventListener("click", async () => {
