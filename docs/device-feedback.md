@@ -19,6 +19,17 @@ syncing them through the pod actively fights the user.
 This is the one rule here that is a *design* decision rather than a platform
 constraint, and it is the one most likely to be got wrong by default.
 
+**A changed default does not reach a device that already saved a choice.**
+The usual merge is `{ ...DEFAULT_PREFS, ...storedPrefs }` — an explicit stored
+value always wins, which is the point, it is what makes "I turned this off"
+survive a reload. It also means flipping `DEFAULT_PREFS.screenOn` from `true`
+to `false` fixes every *new* install and changes nothing for a device that
+already wrote `screenOn: true` to `localStorage` under the old default — that
+device goes on shipping the old behavior until the toggle is tapped once by
+hand. Read a report of "still doing the old thing after the fix shipped" as
+this before assuming the deploy failed or the code is wrong; a version-bump
+migration is real code and is usually not worth it for what one tap fixes.
+
 ## Both audio and video need a user gesture
 
 An `AudioContext` is created **suspended** until a user gesture resumes it. If
