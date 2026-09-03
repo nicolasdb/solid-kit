@@ -72,6 +72,16 @@ Details that matter:
 
 - **The browser releases the lock whenever the page is hidden.** Re-acquire on
   `visibilitychange`. Without this the lock survives exactly one notification.
+- **The video does not share that release, and that asymmetry is the bug to
+  expect.** Nothing pauses a background tab's `<video>` for you — that is
+  exactly the property the trick relies on. So a lock that fell back to video,
+  then got backgrounded and forgotten (phone locked, tab left open rather than
+  closed), keeps the video looping and the battery draining for an audience of
+  nobody: the point of the lock was to keep a *visible* screen on. Give the
+  video the same `visibilitychange` handling the native lock gets for free —
+  stop it going hidden, let re-acquisition on return pick whichever path
+  answers. Closing the tab is never the risk (the OS reclaims everything with
+  the page); leaving it open in the background, forgotten, is.
 - Listen to the sentinel's `release` event. A drop while the page is visible and
   the lock is still wanted is the signal to start the video fallback.
 - The fallback video can be generated locally — 3 s of black 64×64 VP9 is
