@@ -220,6 +220,29 @@ to another domain (it is per origin).
 
 ---
 
+## 11 · Device feedback, if the app wires it
+
+Skip if the app has no sound / haptics / screen-wake toggles. None of this is
+machine-checkable, and all of it fails silently.
+
+**Do:** on a real Android phone and a real iPhone, turn each toggle on *before*
+starting anything, then run the app's main flow, then background the tab for a
+minute and come back.
+
+**Expect:** the toggle takes effect on tap, not at the next action — a toggle
+that shows itself as on while holding nothing is the bug
+[`docs/device-feedback.md`](device-feedback.md) exists to prevent. Sound plays
+from the first event (the `AudioContext` was armed by a gesture). The haptics
+toggle is absent on iPhone rather than present and inert. The screen holds while
+the toggle is on and dims normally once it is off, and the app says which path
+is holding it. Coming back from the background: the screen lock is re-acquired,
+the elapsed time is right rather than short, and a burst of queued signals does
+not fire at once.
+
+**Observed:**
+
+---
+
 ## UX review
 
 Not machine-checkable. Answer these per release, about whatever screens the app

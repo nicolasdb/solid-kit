@@ -159,6 +159,17 @@ ships them as an image ([ADR 009](docs/adr/009-css-instance-is-a-skin-over-stock
 amended). What stays here is the skin audit, beside the slots it checks:
 `npm run audit -- --skin <skin.css>`.
 
+## Device feedback on mobile
+
+Sound, haptics and "keep the screen on" are not in the kit as code — they are
+only worth wiring in an app that needs them. The platform constraints that cost
+a debugging session each are written down in
+[`docs/device-feedback.md`](docs/device-feedback.md): `AudioContext` starts
+suspended until a user gesture, `navigator.vibrate` does not exist on iOS
+Safari, the wake lock is released on every page hide, and a muted looping video
+is a second door to the same OS sleep inhibition rather than a stronger one.
+Read it before writing any of the three.
+
 ## Out of scope, on purpose
 
 No demo-mode framework ([ADR 005](docs/adr/005-demo-mode-is-per-app.md)), no
