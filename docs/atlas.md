@@ -70,3 +70,6 @@ These live in [`adr/`](adr/) and apply across repos:
   the WAC→ACP move.
 - [004 — The kit is copied, not packaged](adr/004-kit-is-copied-not-packaged.md).
 - [005 — Demo mode is per app](adr/005-demo-mode-is-per-app.md).
+- [006 — Membership and publication by pull](adr/006-membership-and-publication-by-pull.md)
+  (proposed): members grant and announce, the collective's agent pulls and
+  snapshots; membership is a two-sided handshake that grants nothing.
