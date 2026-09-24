@@ -155,9 +155,19 @@ makes sure none is missed.
 | `inbox/` | Append (authenticated agents, members or not) | Read | Control |
 | `depots/` | Read | Read, Write | Control |
 | `confrontations/`, `chantiers/`, `briefs/` | Read | Read, Write | Control |
-| `principles/`, `membres.ttl`, `config.ttl` | Read | Read | Control; writes after ceremony or acceptance |
+| `principles/`, `membres.ttl` | Read | Read | Control; writes after ceremony or acceptance |
+| `config.ttl` | Read (any authenticated agent) | Read | Control |
 
-Each WebID is listed by name in every ACL, as §2 requires. No member holds
+`config.ttl` is the exception to "members only": it is how an applicant
+learns where the inbox is and which agent to grant, so it is read *before*
+membership. It holds nothing secret. Its shape is defined by the backoffice
+(`solid-backoffice`, `docs/examples/hyperscope-config.ttl`): the group IRI,
+the inbox, the agent and the bundle folder name.
+
+Each WebID is listed by name in every ACL, as §2 requires. Accepting a member
+therefore also means adding their WebID to the Read grants above; until then,
+the roster is unreadable to them, and the backoffice shows their state as
+"pending", never as "refused". No member holds
 Write anywhere on the common pod. Append on `depots/` is no longer needed,
 which removes the unverified CSS behaviour from the critical path.
 
