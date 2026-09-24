@@ -211,6 +211,21 @@ What the manual run did *not* yet do, and the next run must do:
   procedure; the pull needs one too, and that procedure is also the
   specification for the Hermes task.
 
+**2026-09-24, later that day: change detection.** After the connector began
+returning version metadata (pocpod0 `de537b9`), the pull ran twice in a row.
+The first run snapshotted both files under `depots/nicolas/`, with real keys.
+The second run found both keys unchanged and wrote nothing. CSS 7 does include
+`dcterms:modified` and `posix:size` for each child in a container listing, so
+a pull can skip unchanged files without reading them, and without leaving a
+read receipt on the member's pod.
+
+A finding from that run: CSS's ETag has the form `"<mtime-ms>-<content-type>"`.
+It contains no content hash and not even the size. On CSS it carries the same
+information as `modified`. The agent matched a stored ETag against a listed
+`modified` by decoding that format. It worked, but it depends on an
+implementation detail. The procedure now records both keys and only ever
+compares keys of the same kind.
+
 ## Open, and to verify live before relying on it
 
 - Whether webhook channels survive a CSS restart with our
