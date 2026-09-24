@@ -191,6 +191,26 @@ which removes the unverified CSS behaviour from the critical path.
   also the risk. The onboarding copy must say so in one line, as plainly as
   solid-dash says that revoking is forward-only.
 
+## Live evidence
+
+**2026-09-24: manual pull and confrontation, end to end.** The source was
+`hyperscope_ndb/output2hyperscope/` on the member's pod, with Read granted to
+`agent#me`. From a claude.ai session using `hyperscopeMain`, one `.md` file
+was pulled into `hyperscope/depots/`. The confrontation procedure then wrote
+its report into `confrontations/` with a 🟧 flag, and `depots/` was left
+untouched. The grant, the pull, the single writer and the confrontation all
+held.
+
+What the manual run did *not* yet do, and the next run must do:
+
+- It wrote the file flat into `depots/`, keeping its original name, with no
+  `<member>/<bundle>/<published>-<etag>/` path and no `provenance.ttl`.
+  Without the source ETag, the next pull cannot tell whether anything changed.
+- It was triggered from chat, with no `as:Announce` in `inbox/`.
+- The pull steps were improvised. The confrontation already had a written
+  procedure; the pull needs one too, and that procedure is also the
+  specification for the Hermes task.
+
 ## Open, and to verify live before relying on it
 
 - Whether webhook channels survive a CSS restart with our
