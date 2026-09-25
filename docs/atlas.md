@@ -18,7 +18,7 @@ Process apps — one repo each, one job each
         │  built from ↓                    store to ↓↓
 Shared foundation
   solid-kit          auth, pod helpers, tokens, UX principles, scaffold
-  backoffice         account · pod · permissions · onboarding
+  solid-backoffice   account · pod · permissions · onboarding
         │  baseline published to ↓         sharing switched in backoffice ↓
 Pod layer — the only data plane apps may touch
   user pods          private by default; sharing activated in the backoffice
@@ -38,7 +38,7 @@ provider never reaches into an app's data semantics.
 |---|---|
 | `solid-provider` | CSS config and its identity-page overlay, oxigraph, qdrant, mcp-connector, compose, VPS infra. The product is a humane, fully compliant Solid provider. |
 | `solid-kit` | The app scaffold and shared code, the design system, the deploy pattern, this atlas, the ADRs. |
-| `backoffice` | Account, WebID and pod management; permissions in plain language; the onboarding path from "why does this exist" to a working account. |
+| `solid-backoffice` | Account, WebID and pod management; permissions in plain language; the onboarding path from "why does this exist" to a working account; the membership handshake (ADR 006). Replaces the frozen `pocpod0/backoffice/`. |
 | `valisette` | Triage app. |
 | `solid-sport-tracker` | Session tracker with a sequence timer. |
 | `maps-of-making` | Space profile and events as Turtle on the space's own pod; the map aggregates public documents. |
@@ -70,3 +70,6 @@ These live in [`adr/`](adr/) and apply across repos:
   the WAC→ACP move.
 - [004 — The kit is copied, not packaged](adr/004-kit-is-copied-not-packaged.md).
 - [005 — Demo mode is per app](adr/005-demo-mode-is-per-app.md).
+- [006 — Membership and publication by pull](adr/006-membership-and-publication-by-pull.md)
+  (proposed): members grant and announce, the collective's agent pulls and
+  snapshots; membership is a two-sided handshake that grants nothing.
