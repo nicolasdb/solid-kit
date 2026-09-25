@@ -226,7 +226,7 @@ which removes the unverified CSS behaviour from the critical path.
 ## Consequences
 
 - **A member onboards with one grant.** They grant the collective's agent Read
-  on `output2hyperscope/`. This happens on their own pod, in their own
+  on `output2/hyperscope/`. This happens on their own pod, in their own
   backoffice, and becomes a step in the onboarding path.
 - **The collective's agent must run somewhere that listens.** On Hermes: a
   dedicated agent with its own WebID and connector, a reachable webhook, the
