@@ -208,11 +208,12 @@ makes sure none is missed.
 | `depots/` | Read | Read, Write | Control |
 | `confrontations/`, `chantiers/`, `briefs/` | Read | Read, Write | Control |
 | `principles/`, `membres.ttl` | Read | Read | Control; writes after ceremony or acceptance |
-| `config.ttl` | Read (any authenticated agent) | Read | Control |
+| `config.ttl` | Read (public) | Read | Control |
 
 `config.ttl` is the exception to "members only": it is how an applicant
 learns where the inbox is and which agent to grant, so it is read *before*
-membership. It holds nothing secret. Its shape is defined by the backoffice
+membership, and the backoffice's welcome screen reads it before sign-in. It
+is public (`foaf:Agent`), as it holds nothing secret. Its shape is defined by the backoffice
 (`solid-backoffice`, `docs/examples/hyperscope-config.ttl`): the group IRI,
 the inbox, the agent and the bundle folder name.
 
