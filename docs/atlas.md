@@ -73,3 +73,6 @@ These live in [`adr/`](adr/) and apply across repos:
 - [006 — Membership and publication by pull](adr/006-membership-and-publication-by-pull.md)
   (proposed): members grant and announce, the collective's agent pulls and
   snapshots; membership is a two-sided handshake that grants nothing.
+
+The agent's side of 006 is written as [procedures](procedures/README.md):
+pull and confrontation, copied and adapted by each collective.

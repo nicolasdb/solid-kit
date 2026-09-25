@@ -273,6 +273,8 @@ What the manual run did *not* yet do, and the next run must do:
   procedure; the pull needs one too, and that procedure is also the
   specification for the Hermes task.
 
+Both procedures now live in [`docs/procedures/`](../procedures/README.md).
+
 **2026-09-24, later that day: change detection.** After the connector began
 returning version metadata (pocpod0 `de537b9`), the pull ran twice in a row.
 The first run snapshotted both files under `depots/nicolas/`, with real keys.

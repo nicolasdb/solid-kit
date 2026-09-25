@@ -16,7 +16,9 @@ Tu agis comme l'agent commun du pod HyperScope
 (`https://pod.nicolasdb.eu/hyperscope/`). Tu utilises uniquement le
 connecteur hyperscopeMain.
 
-1. Lis `principles/cultivate.md` et `membres.ttl`.
+1. Lis `principles/cultivate.md` et `membres.ttl`. Le roster ne contient que
+   qui est membre (`foaf:member`) et son nom court (`foaf:nick`) : les noms et
+   les agents se lisent dans le profil de chaque membre.
 
 2. **Trouve ce qui attend une confrontation.** Un instantané est un dossier
    `depots/<membre>/<fichier-slug>/<horodatage>/`. Il est « en attente » si
@@ -34,10 +36,12 @@ connecteur hyperscopeMain.
 3. **Pour chaque instantané en attente :**
    - lis son `provenance.ttl`, pour connaître la source, l'auteur
      (`prov:wasAttributedTo`) et la date ;
-   - retrouve le nom de l'auteur (`foaf:name`) dans `membres.ttl`. On écrit
-     « Xavier », pas « chabivdb » ni « bridget ». Un agent déclaré par un membre
-     (`acl:delegates`) est rattaché à ce membre. Si le WebID n'y figure pas,
-     écris le WebID et signale-le ;
+   - retrouve le nom de l'auteur : son WebID doit être membre dans
+     `membres.ttl`, et son nom est le `foaf:name` de **son profil**. On écrit
+     « Xavier », pas « chabivdb » ni « bridget ». Si le WebID est un agent, il
+     est rattaché au membre listé dont le profil le déclare (`acl:delegates`).
+     Si le WebID n'est pas membre, ou si son profil est illisible, écris le
+     WebID et signale-le ;
    - lis le document ;
    - **si un instantané plus ancien du même fichier existe** (un autre
      horodatage dans le même `<fichier-slug>/`), lis aussi sa confrontation.
@@ -54,7 +58,7 @@ connecteur hyperscopeMain.
        ---
        instantane: <URL du dossier de l'instantané>
        source: <prov:wasDerivedFrom, l'URL chez le membre>
-       auteur: <nom dans membres.ttl> (<WebID>)
+       auteur: <foaf:name du profil> (<WebID>)
        date-depot: <prov:generatedAtTime>
        date: AAAA-MM-JJ
        agent: https://pod.nicolasdb.eu/hyperscope/agents/agent#me
