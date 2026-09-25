@@ -62,6 +62,21 @@ backoffice traite et supprime, et parfois des messages inconnus : **on ne lit qu
 déclarer une source en séance (« `…/output2/hyperscope/` de Nicolas est une source »). On
 l'inscrit alors avec `hs:declareePar "session"` à la place d'une annonce.
 
+**Une source de phase 0 et une annonce du même membre.** Quand un membre qui a une source
+`hs:declareePar "session"` annonce une source, les deux peuvent suivre le même contenu
+(`output2hyperscope/` puis `output2/hyperscope/`, par exemple) et produire des instantanés
+jumeaux. **On ne devine pas.** On suit la nouvelle source normalement, on laisse l'ancienne
+telle quelle, et le rapport signale « source de phase 0 peut-être remplacée ». C'est une
+personne qui décide, en séance. Si elle confirme, on inscrit sur l'ancienne source :
+
+```turtle
+hs:statut        "remplacee" ;
+hs:remplaceePar  <#source-de-la-nouvelle> ;
+dcterms:modified "AAAA-MM-JJ" .
+```
+
+Une source `remplacee` n'est plus tirée. Ses instantanés restent (règle 2).
+
 ### 3. Vérifier que l'adhésion tient toujours
 
 L'adhésion se lit des deux côtés, et chaque côté peut y mettre fin seul (ADR 006 §2). Le
@@ -160,9 +175,10 @@ texte est un index, pas un instantané (ADR 001).
 | 404 sur la source | `source-disparue`, avec la date | ils restent |
 | un fichier ne figure plus dans le conteneur | `retire-a-la-source` pour ce fichier | ils restent |
 | (étape 3) membre retiré du roster, ou parti | `membre-retire` / `membre-parti`, avec la date | ils restent |
+| (étape 2, décision humaine) source de phase 0 remplacée | `remplacee` et `hs:remplaceePar` | ils restent |
 
-Une source au statut `acces-retire` ou `source-disparue` n'est plus tirée. Elle ne redevient
-`suivie` qu'avec une nouvelle annonce.
+Une source qui n'est plus `suivie` n'est plus tirée. Elle ne redevient `suivie` qu'avec une
+nouvelle annonce (ou, pour `remplacee`, une nouvelle décision en séance).
 
 ### 6. Rapport de fin
 
@@ -173,7 +189,8 @@ Toujours produire le rapport, même quand il n'y a rien de nouveau :
 - les fichiers inchangés : leur nombre ;
 - les statuts changés : accès retiré, source disparue, retiré à la source, membre retiré ou
   parti, binaire en attente ;
-- les anomalies : clé absente, instantané interrompu, membre sans nom court.
+- les anomalies : clé absente, instantané interrompu, membre sans nom court ;
+- à décider par une personne : les sources de phase 0 peut-être remplacées par une annonce.
 
 Enchaîner ensuite `procedure-confrontation.md` sur les instantanés créés. Un instantané est
 « en attente de confrontation » tant qu'aucun compte-rendu de `confrontations/` ne cite son chemin.
@@ -192,10 +209,20 @@ Enchaîner ensuite `procedure-confrontation.md` sur les instantanés créés. Un
     prov:wasGeneratedBy   [ a prov:Activity ;
                             prov:wasAssociatedWith <https://pod.nicolasdb.eu/hyperscope/agents/agent#me> ;
                             hs:via "claude.ai session" ] ;        # plus tard : "hermes"
-    hs:fichier            <NOM-D-ORIGINE-ENCODE> ;
+    hs:fichier            <NOM-D-ORIGINE-ENCODE> ;                 # IRI relatif, jamais un littéral
     hs:cleSource          "ETAG-OU-MODIFIED+TAILLE" ;
     hs:annonce            <URL-DE-L-ANNONCE-DANS-INBOX> .         # ou : hs:declareePar "session"
 ```
+
+**`hs:fichier` est un IRI relatif** vers la copie dans ce même dossier : le nom d'origine,
+encodé pour une URL (`<24.12.27%20Synth%C3%A8se%20r%C3%A9union_jason_Nico.md>`). Il se résout
+contre `provenance.ttl`, donc il désigne le fichier de l'instantané, qu'on peut suivre ; le
+nom d'origine se lit en décodant son dernier segment. Ce n'est jamais un littéral
+(`"24.12.27 Synthèse…"`). Dans `sources.ttl`, `hs:fichier` porte l'adresse absolue du fichier
+**chez le membre** : même prédicat, autre objet, ne pas confondre les deux.
+
+Les instantanés du 2026-09-25T0942 et T1215 portent un `hs:fichier` littéral, écrit avant cette
+règle. On ne les réécrit pas (règle 2) ; un lecteur accepte les deux formes.
 
 `hs:` est un espace de noms provisoire. On le garde tel quel jusqu'à ce qu'un vocabulaire
 commun soit décidé ; le renommer plus tard est une passe mécanique.

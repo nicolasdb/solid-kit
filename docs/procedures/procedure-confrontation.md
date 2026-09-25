@@ -42,7 +42,9 @@ connecteur hyperscopeMain.
      est rattaché au membre listé dont le profil le déclare (`acl:delegates`).
      Si le WebID n'est pas membre, ou si son profil est illisible, écris le
      WebID et signale-le ;
-   - lis le document ;
+   - lis le document : le fichier que désigne `hs:fichier` dans
+     `provenance.ttl` (un IRI relatif au dossier ; sur quelques instantanés
+     du 2026-09-25, un littéral qui donne son nom dans le même dossier) ;
    - **si un instantané plus ancien du même fichier existe** (un autre
      horodatage dans le même `<fichier-slug>/`), lis aussi sa confrontation.
      Confronte alors surtout ce qui a changé : une tension résolue, une
