@@ -58,8 +58,9 @@ Nothing is ever written into the common pod by a member.
 
 - a single Turtle document, such as a solid-dash Bundle;
 - a JSON or Markdown file;
-- a container such as `output2hyperscope/`, where everything inside is part of
-  the bundle.
+- a container such as `output2/hyperscope/`, where everything inside is part
+  of the bundle. One folder per collective under a private `output2/`, so a
+  member of several collectives grants each agent its own folder only.
 
 A container is the easiest shape to use day to day: set its grant once, then
 drop files into it. The collective discovers new files through container `Add`
@@ -68,13 +69,18 @@ notifications.
 ### 2. Membership is a handshake, read from both sides
 
 - **The member declares.** Their profile carries `foaf:name`,
-  `org:memberOf <collective#group>`, and `acl:delegates <agent WebID>`. The
+  `org:memberOf <collective IRI>`, and `acl:delegates <agent WebID>`. The
+  collective IRI is the subject of its `config.ttl` (`config.ttl#hyperscope`),
+  so following the link from a profile leads to the collective's description. The
   agent's profile points back at the human. A claim made from one side only
   proves nothing.
 - **The member asks.** An `as:Join` is sent to the collective's `inbox/`.
 - **The collective recognises.** An admin accepts and writes
-  `<#group> foaf:member <WebID>` into the collective's `membres.ttl`, then sends
-  an `as:Accept` (or `as:Reject`) to the member's inbox.
+  `<config.ttl#hyperscope> foaf:member <WebID>` into the collective's
+  `membres.ttl`, then sends an `as:Accept` (or `as:Reject`) to the member's
+  inbox. The roster holds **only** `foaf:member` lines: names and agents are
+  read from each member's profile, so there is one source for each fact and
+  nothing in the roster goes stale.
 
 The state is **read, not stored**. It follows from which side declares what:
 
@@ -111,10 +117,55 @@ the exact text it judged. A link could change after the judgement, or vanish.
   disappears (404) or access is revoked (401/403), the next snapshot is not
   taken and the bundle is marked `source-gone` or `access-revoked`. Earlier
   snapshots stay. That is what revocation means (see Context).
+- **A deleted source file is marked, not mirrored.** When a file disappears
+  from a followed container (`Remove`, or missing from the next listing), the
+  bundle's record marks that file `source-gone`; its snapshots stay. This is
+  not a breach of [ADR 001](001-index-vs-truth.md) rule 4 (deletion
+  propagates): a snapshot is the collective's own record, taken with the
+  member's consent, not an index of the member's pod. Its own deletion, if
+  ever, is the retention rule below.
 - **Derived text is an index, not truth.** A `.docx` is kept as a `.docx`. The
   Markdown or plain text extracted from it for the agent and for oxigraph is
   derived and rebuildable ([ADR 001](001-index-vs-truth.md)). If it is stored
   beside the snapshot, it is named so it cannot be mistaken for the original.
+
+#### Versions (proposed)
+
+A change to a file means a new snapshot of **that file only**, fetched whole
+(HTTP has no partial read of a change); unchanged files are skipped from the
+container listing. The checks run again on the new snapshot. Three rules keep
+the number of versions sane:
+
+- **Only when the bytes changed.** The agent hashes what it fetched and takes
+  no snapshot if the hash equals the last one. CSS's ETag cannot be used for
+  this: it holds no content hash (see Live evidence).
+- **Only once the file has settled.** A change is snapshotted after the file
+  has been quiet for a while, so a series of saves gives one version. The
+  delay is set per collective in `config.ttl`.
+- **Retention is a separate task, never the pull.** A snapshot that a
+  confrontation refers to is kept for good. Others beyond the last *n* per
+  file may be pruned by a scheduled task, with *n* set in `config.ttl`.
+
+Git is not needed: snapshots under `<published>-<etag>/` already form a
+linear history with a single writer, and git's branches and merges answer a
+problem this design does not have. If members need to compare versions, that
+is a diff view over two snapshots.
+
+#### Status (proposed)
+
+Each snapshot folder holds, beside the original file and `provenance.ttl`, a
+`status.ttl` written by the collective's agent: one entry per event
+(`collected`, `reviewed`, `flagged`, `error`), each with its time and, for a
+review, the confrontation it came from. Entries are added, never rewritten.
+This works for any file type, since nothing is written into the file itself.
+
+For reading at scale, the agent also keeps `depots/<member>/index.ttl`: per
+source file, its latest snapshot and latest status, plus `source-gone` when
+it applies. It is derived and rebuildable from the snapshot folders, and it
+lets a member's backoffice or agent see everything with one read. Queries
+across members go to oxigraph, which indexes one named graph per snapshot and
+marks the latest; apps never read oxigraph ([ADR 001](001-index-vs-truth.md)
+rule 5).
 
 ### 4. Change detection: a notification is a trigger, never data
 
@@ -237,6 +288,9 @@ implementation detail. The procedure now records both keys and only ever
 compares keys of the same kind.
 
 ## Open, and to verify live before relying on it
+
+- The settle delay, the retention count and which statuses exist: proposed
+  in §3, to be set from the first real use.
 
 - Whether webhook channels survive a CSS restart with our
   `storage/key-value/resource-store.json` config. If they do not, the polling
