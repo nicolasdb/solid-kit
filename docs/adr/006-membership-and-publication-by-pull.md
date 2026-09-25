@@ -78,9 +78,10 @@ notifications.
 - **The collective recognises.** An admin accepts and writes
   `<config.ttl#hyperscope> foaf:member <WebID>` into the collective's
   `membres.ttl`, then sends an `as:Accept` (or `as:Reject`) to the member's
-  inbox. The roster holds **only** `foaf:member` lines: names and agents are
-  read from each member's profile, so there is one source for each fact and
-  nothing in the roster goes stale.
+  inbox. The roster holds only what the collective decides: `foaf:member`,
+  and the `foaf:nick` it files each member's work under in `depots/`. Names
+  and agents are read from each member's profile, so there is one source for
+  each fact and nothing in the roster goes stale.
 
 The state is **read, not stored**. It follows from which side declares what:
 
