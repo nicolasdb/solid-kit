@@ -76,6 +76,10 @@ introduce a component system without a reason bigger than taste.
   is no generic read/write wrapper because no two apps wanted the same one.
 - `src/lib/conditional.ts` — for documents something *else* also writes. If the
   app is the only writer, plain solid-client calls are simpler and enough.
+- `src/lib/read.ts` — `readTurtle` for what a screen *shows*: revalidates with
+  `If-None-Match`, 304 hands back the copy kept in memory; `forgetReads()` at
+  sign-out. Not a generic wrapper: writes never use it. Why, and the two
+  other rules for fast screens: [ADR 007](docs/adr/007-reads-revalidate-never-trust-a-copy.md).
 - `src/lib/draft.ts` — `makeDraftStore<T>`, for the window where the browser
   holds the only copy of the user's work.
 - `src/styles/core.css` — structure and the slot contract. Project-agnostic:

@@ -73,6 +73,9 @@ These live in [`adr/`](adr/) and apply across repos:
 - [006 — Membership and publication by pull](adr/006-membership-and-publication-by-pull.md)
   (proposed): members grant and announce, the collective's agent pulls and
   snapshots; membership is a two-sided handshake that grants nothing.
+- [007 — Reads revalidate; a copy is never trusted](adr/007-reads-revalidate-never-trust-a-copy.md):
+  independent reads start together, a screen draws from the last load and
+  reads behind it, display reads send `If-None-Match`. Memory only.
 
 The agent's side of 006 is written as [procedures](procedures/README.md):
 pull and confrontation, copied and adapted by each collective.
