@@ -14,7 +14,7 @@ import "./styles/patterns.css";
 import { completeLogin, getSession, loginWithIdentifier, logout } from "./lib/auth";
 import { describePodError, getPrimaryPodUrl, isAuthError } from "./lib/pod";
 import { APP_NAME, DEFAULT_IDENTIFIER } from "./config";
-import { focusView } from "./ui/a11y";
+import { focusView, trackInputModality } from "./ui/a11y";
 import { renderError, renderPending } from "./ui/patterns";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -193,4 +193,5 @@ async function renderHome(webId: string, podUrl: string): Promise<void> {
   focusView(app);
 }
 
+trackInputModality();
 main();
