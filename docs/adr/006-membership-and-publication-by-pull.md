@@ -83,6 +83,14 @@ notifications.
   so following the link from a profile leads to the collective's description. The
   agent's profile points back at the human. A claim made from one side only
   proves nothing.
+  *Not built yet (27 Sep 2026, from solid-backoffice slice D):* the agent's
+  side of this handshake is deferred. The backoffice makes agents at
+  `<pod>/profile/<name>#me` on the member's own pod, so the agent's address
+  already says whose it is, and nothing reads a back-link yet. It becomes
+  worth writing (e.g. `prov:actedOnBehalfOf <human WebID>` in the agent's
+  document, kept in step with `acl:delegates`) once a reader checks
+  attribution before crediting a member, or for an agent that lives
+  elsewhere (its own pod, another provider).
 - **The member asks.** An `as:Join` is sent to the collective's `inbox/`.
 - **The collective recognises.** An admin accepts and writes
   `<config.ttl#hyperscope> foaf:member <WebID>` into the collective's
@@ -315,3 +323,5 @@ compares keys of the same kind.
   onboarding path should create one.
 - Whether `acl:delegates` is still the right predicate for human → agent, or
   whether a newer term has replaced it.
+- The agent → human back-link of §2: which predicate, and who first needs to
+  read it. Deferred by solid-backoffice slice D (27 Sep 2026).
