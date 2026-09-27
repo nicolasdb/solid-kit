@@ -53,6 +53,15 @@ Nothing is ever written into the common pod by a member.
 4. **Follow.** The agent subscribes to changes (§4). A new ETag produces a new
    snapshot, and a new confrontation runs against it. There is no "v2" deposit:
    editing your own document *is* the new version.
+5. **Stop** (added 27 Sep 2026, from solid-backoffice). The member removes
+   the grant, then sends an `as:Undo` to the same `inbox/`, whose
+   `as:object` is the announcement described in place
+   (`[ a as:Announce; as:object <bundle>; as:target <group> ]`): the member
+   does not know where the collective stored the original. Per member and
+   bundle, the latest `as:Announce` or `as:Undo` (by `as:published`) says
+   whether it is shared, so share, stop and share again read right. Like a
+   notification (§4), the Undo is a trigger: the missing grant is the
+   truth, and the next pull marks `access-revoked` (§3) with or without it.
 
 **A bundle is whatever URI the member points at**, whatever its shape:
 
