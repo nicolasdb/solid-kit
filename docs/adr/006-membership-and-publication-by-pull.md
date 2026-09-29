@@ -241,6 +241,39 @@ the roster is unreadable to them, and the backoffice shows their state as
 Write anywhere on the common pod. Append on `depots/` is no longer needed,
 which removes the unverified CSS behaviour from the critical path.
 
+### 6. The collective's graph (added 2026-09-29)
+
+What the pull and the confrontation wrote is loaded into Oxigraph, as a
+derived index (ADR 001), so that members' agents can draw on the
+collective's work in their own conversations.
+
+- **What goes in**: the Turtle under the collective's `depots/` and
+  `confrontations/`, one named graph per document, named by its pod
+  address. `provenance.ttl` says who and when; the confrontation's sidecar
+  (`procedure-confrontation.md` v2) says what the document is about
+  (`dcterms:subject`, shared SKOS topics in `confrontations/sujets.ttl`),
+  what it builds on (`prov:wasDerivedFrom`, from the member's
+  `s-appuie-sur:`) and what the confrontation found. Markdown never goes in:
+  its sidecar does.
+- **Who loads it**: the collective's agent only (`hs:agent`), with its own
+  credentials, so the pod's rules decide what it can load
+  (pocpod0 `graph_ingest`).
+- **Who reads it**: a member on the roster, or an agent a listed member
+  declares (`acl:delegates`), read-only, over the folders that WebID can
+  read on the pod at that moment (pocpod0 `graph_query`). The index never
+  shows more than the pod. So accepting a member grants their agents the
+  same Read (solid-backoffice slice E).
+- **Isolation**: Oxigraph has no access control; it is reachable only from
+  the connector and the host's loopback. The SPARQL protocol dataset holds
+  a query to the caller's graphs against `FROM`, `FROM NAMED` and
+  `GRAPH <iri>`; `SERVICE` escapes it (Oxigraph federates, and can query
+  itself), so queries are parsed, `SERVICE` and updates refused, and the
+  regenerated text sent. Verified on Oxigraph 0.5.6.
+
+Open: what leaves the graph when a member leaves (their snapshots stay,
+§3); whether the sidecar's topics hold up across model changes (a
+reference set of documents, confronted again when the model changes).
+
 ## Consequences
 
 - **A member onboards with one grant.** They grant the collective's agent Read

@@ -8,7 +8,12 @@ side, as the backoffice implements it on the member's and the admin's side.
 | Procedure | Does | Writes to |
 |---|---|---|
 | [`procedure-pull.md`](procedure-pull.md) | follows what members announced, snapshots what changed | `depots/` only |
-| [`procedure-confrontation.md`](procedure-confrontation.md) | reads each new snapshot against the collective's principles | `confrontations/`, `chantiers/` (append) |
+| [`procedure-confrontation.md`](procedure-confrontation.md) | reads each new snapshot against the collective's principles, describes it in a Turtle sidecar, loads the graph | `confrontations/` (report + sidecar, `sujets.ttl` append), `chantiers/` (append), the graph (`graph_ingest`) |
+| [`procedure-contribution.md`](procedure-contribution.md) | **member side**: draws on the collective's graph, deposits in `output2/<collective>/` citing what it builds on, reads the member's inbox | the member's own `output2/<collective>/` only |
+
+Each one is an input → process → output module: it names what it reads,
+what it writes, and it is the only writer of its output. The first two run
+as the collective's agent; the third as a member's own agent.
 
 They are written for HyperScope, in French, and were first run by hand from a
 claude.ai session with the agent's own connector (2026-09-24, see ADR 006,
