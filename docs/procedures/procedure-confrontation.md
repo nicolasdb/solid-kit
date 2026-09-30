@@ -190,6 +190,7 @@ d'un fichier qui est dans `depots/`, pas à côté d'elle.
 # Le document : ce qu'il est, de quoi il parle, sur quoi il s'appuie.
 <URL-DU-DOCUMENT-DANS-L-INSTANTANE>
     dcterms:title         "Titre du document"@fr ;
+    dcterms:isVersionOf   <URL-DU-DOSSIER-FICHIER-SLUG/> ;    # depots/<membre>/<fichier-slug>/ : le document, toutes versions
     dcterms:creator       <WEBID-DU-MEMBRE> ;                 # le membre, jamais son agent
     dcterms:created       "AAAA-MM-JJTHH:MM:SSZ"^^xsd:dateTime ;   # prov:generatedAtTime de l'instantané
     dcterms:abstract      "Trois à cinq phrases : ce que le document apporte."@fr ;
@@ -200,6 +201,11 @@ d'un fichier qui est dans `depots/`, pas à côté d'elle.
 # Le nom de l'auteur tel que son profil le donnait ce jour-là (le graphe ne lit pas les profils).
 <WEBID-DU-MEMBRE> foaf:name "Xavier" .
 ```
+
+`dcterms:isVersionOf` relie les versions d'un même document : chaque
+instantané de `depots/<membre>/<fichier-slug>/` a le même. Les fiches écrites
+avant cette ligne ne l'ont pas ; on ne les réécrit pas, la procédure de
+contribution donne une requête qui retrouve les versions par l'adresse.
 
 `hs:Vert`, `hs:Orange`, `hs:Rouge` sont des IRI, pas les emoji : une requête
 les compare sans ambiguïté. Le compte-rendu garde les emoji pour l'œil.

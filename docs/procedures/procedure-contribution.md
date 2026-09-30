@@ -93,8 +93,9 @@ En-tête à mettre en haut du document :
   peut changer ou devenir illisible, l'instantané non. C'est ce lien qui
   permet au graphe de voir les idées circuler ; ne le mets que si c'est vrai.
 - **`sujets`** : des libellés de `confrontations/sujets.ttl` quand ils
-  conviennent (le graphe les donne) ; sinon tes mots, l'agent commun
-  tranchera.
+  conviennent (le graphe les donne) ; sinon tes mots. Ce n'est qu'une
+  indication : c'est la confrontation qui range le document dans les sujets
+  du collectif.
 - **`avec`** : seulement si la personne a vraiment co-écrit, et elle doit le
   savoir. Une invitation à co-signer passe par son inbox (section 3).
 
@@ -168,6 +169,22 @@ lignes.
       ?doc dcterms:title ?titre .
       FILTER(?resultat != hs:Vert)
     }
+
+**La dernière version de chaque document** (un document déposé trois fois
+donne trois instantanés ; celle-ci n'en garde qu'un, le plus récent) :
+
+    PREFIX dcterms: <http://purl.org/dc/terms/>
+    SELECT ?v ?titre ?date WHERE {
+      ?v dcterms:title ?titre ; dcterms:created ?date .
+      FILTER NOT EXISTS {
+        ?w dcterms:created ?autre .
+        FILTER(REPLACE(STR(?w), "[^/]+/[^/]+$", "") = REPLACE(STR(?v), "[^/]+/[^/]+$", "") && ?autre > ?date)
+      }
+    }
+
+Le dossier `depots/<membre>/<fichier-slug>/` est le document ; chaque dossier
+horodaté dedans en est une version. La requête les rapproche par l'adresse,
+ce qui marche aussi pour les fiches écrites avant `dcterms:isVersionOf`.
 
 **Un mot dans les résumés** :
 

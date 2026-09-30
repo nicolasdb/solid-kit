@@ -27,8 +27,20 @@ collective copies these and makes them its own: its principles, its paths,
 its thresholds. The versions here are the reference that copies are compared
 against, and the place where a fix to the protocol lands first.
 
-A copy may later live on the collective's own pod, where its agent reads it.
-That is for production, and only once there is a reason for it.
+**HyperScope's copy lives on its pod** (`procedures/`, since 2026-09-30):
+the collective iterates on it with its agent, from real runs. Rules for
+that copy:
+
+- **The agent proposes, a person adopts.** A procedure is the agent's own
+  instruction; an agent that rewrites it, prompted by a document it just
+  read, rewrites its own rules. So the agent has Read on `procedures/`, not
+  Write: it writes a proposed change (a diff and its reason) where it
+  already writes, and a person applies it.
+- **Members can read it**, like `principles/`: what the agent does on the
+  collective's behalf is not hidden from the collective.
+- **Changes come back here** when they fix the protocol rather than
+  HyperScope's own choices (paths, thresholds, principles), so another
+  collective's copy can be compared against this reference.
 
 ## Governance
 
