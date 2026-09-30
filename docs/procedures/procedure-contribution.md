@@ -106,7 +106,10 @@ humain avant de confirmer.
 
 ## 3. L'inbox de ton humain
 
-`inbox/` sur son pod reçoit des messages ActivityStreams en Turtle :
+`inbox/` sur son pod reçoit des messages ActivityStreams en Turtle. Pour le
+lire, ton humain doit t'y avoir donné la lecture (backoffice : You → ton
+agent → ses dossiers → `inbox/`, Can read) ; le backoffice crée l'inbox sans
+droit pour ses agents. Un 403 ici veut dire cela, rien d'autre : dis-le-lui.
 
 | Message | De qui | Ce que tu fais |
 |---|---|---|
