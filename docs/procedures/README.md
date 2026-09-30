@@ -27,20 +27,27 @@ collective copies these and makes them its own: its principles, its paths,
 its thresholds. The versions here are the reference that copies are compared
 against, and the place where a fix to the protocol lands first.
 
-**HyperScope's copy lives on its pod** (`procedures/`, since 2026-09-30):
-the collective iterates on it with its agent, from real runs. Rules for
-that copy:
+**HyperScope's copy lives on its pod**, in two stages (decided 2026-09-30):
 
-- **The agent proposes, a person adopts.** A procedure is the agent's own
-  instruction; an agent that rewrites it, prompted by a document it just
-  read, rewrites its own rules. So the agent has Read on `procedures/`, not
-  Write: it writes a proposed change (a diff and its reason) where it
-  already writes, and a person applies it.
-- **Members can read it**, like `principles/`: what the agent does on the
-  collective's behalf is not hidden from the collective.
-- **Changes come back here** when they fix the protocol rather than
-  HyperScope's own choices (paths, thresholds, principles), so another
-  collective's copy can be compared against this reference.
+- **While the pipeline is in development**: `procedures/`, where the
+  collective iterates on them with its agent from real runs. They still
+  change often, and no ceremony is asked for.
+- **In production**: `principles/procedures/`, beside the principles, with
+  the same rules: read only for the agent and the members, changed only by
+  ceremony. A procedure is a rule the agent applies on the collective's
+  behalf, like a principle. Members already hold Read on `principles/`
+  (solid-backoffice grants it on acceptance), so they can read what their
+  agent does.
+
+In both stages **the agent proposes and a person applies**. A procedure is
+the agent's own instruction; an agent that rewrites it, prompted by a
+document it just read, rewrites its own rules. So the agent has Read on the
+procedures, not Write: it writes a proposed change (a diff and its reason)
+where it already writes, and a person applies it.
+
+**Changes come back here** when they fix the protocol rather than
+HyperScope's own choices (paths, thresholds, principles), so another
+collective's copy can be compared against this reference.
 
 ## Governance
 
