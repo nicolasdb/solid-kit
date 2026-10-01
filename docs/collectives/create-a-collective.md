@@ -25,7 +25,7 @@ At the root of the collective's pod:
 
 | Path | Origin | Access |
 |---|---|---|
-| `config.ttl` | [`templates/collective/config.ttl`](../../templates/collective/config.ttl), filled at creation | public read (the invitation reads it before sign-in) |
+| `config.ttl` | [`templates/collective/config.ttl`](../../templates/collective/config.ttl), filled at creation | public read (the invitation reads it before sign-in); **written by the owner only, never the agent** |
 | `membres.ttl` (`hs:roster`) | empty at creation | members + agent read; written by the backoffice (owner) |
 | `inbox/` (`ldp:inbox`) | created empty | any signed-in agent appends; the common agent reads |
 | `agents/agent` | the common agent's profile | public |
@@ -46,8 +46,14 @@ the collective's alone, and so is anything under `depots/` and after.
 ## Steps, in order
 
 1. Account and pod for the collective, and the common agent
-   (`agents/agent#me`) with its connector.
-2. `config.ttl` from the template: replace each uppercase placeholder. Public.
+   (`agents/agent#me`) with its connector. The collective account's profile
+   declares `acl:delegates <agents/agent#me>`: that link is how the skill
+   checks the agent acts for this collective.
+2. `config.ttl` from the template: replace each uppercase placeholder. Public
+   read, owner write only. The common agent must not be able to change it:
+   it names `hs:agent` and `hs:procedures`, so an agent that could write it
+   could rename itself or repoint its own rules (2026-10-01: the agent's
+   attempt to add `hs:procedures` was refused with 403, as it should be).
 3. `membres.ttl`, empty; `inbox/` with its rules
    ([how-to](https://github.com/nicolasdb/solid-backoffice/blob/main/docs/how-to/set-up-a-collective.md), steps 3–5).
 4. `principles/`: copy the three `procedure-*.md` from this repo, then write
