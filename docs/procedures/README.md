@@ -122,3 +122,21 @@ confirms) is still to be deliberated, alongside its principles.
 - **Keeping a pod copy in step.** A version header in each procedure (it is
   in the title today) plus a `principles/VERSION`, and a backoffice command
   « mettre à jour les procédures », run as a ceremony. Not built.
+
+## Proposed, not adopted
+
+From the live run of 2026-10-01 (ADR 006, "Live evidence"). Each changes a
+procedure every collective follows, so each is a proposal to deliberate,
+not an edit; none is in the texts above.
+
+| Proposal | Procedure | What it addresses |
+|---|---|---|
+| `s-appuie-sur` gives the snapshot's **file**, not its folder | contribution | links to a folder enter the graph with no title |
+| Update `sources.ttl` by Turtle append, not by rewriting it whole | pull | cost and risk of a full rewrite on every pull (an append on the same subject gave the same result) |
+| Abstracts name methods and devices, not only themes | confrontation | links the graph cannot see because it holds abstracts, not text |
+| Give weight to the author's own `sujets:` (self-signification) | confrontation | who signifies the trace: today the common agent alone classifies and flags |
+
+Also seen, no change proposed: an IRI mis-encoded by the agent in
+`sources.ttl` (fixed in the same session; reread IRIs before writing), and
+two new subjects in one day, a pace to watch.
+

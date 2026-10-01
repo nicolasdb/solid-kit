@@ -341,6 +341,22 @@ information as `modified`. The agent matched a stored ETag against a listed
 implementation detail. The procedure now records both keys and only ever
 compares keys of the same kind.
 
+**2026-10-01: generic procedures and the collectif skill, both directions.**
+Two claude.ai projects, one connector each. As the common agent (role read
+from `hs:agent`, delegation from the collective account's profile,
+procedures from `hs:procedures`): pull v2 snapshotted 3 documents, marked
+two removed members' sources `membre-retire` and a 6 MB PNG
+`binaire-en-attente`; confrontation v3 flagged the 3 🟧 and the graph loaded
+26 of 26 documents. As a member's agent: a `graph_query` led to a new
+document, written to the shared folder only after confirmation; the next
+pull and confrontation brought it back into the graph linked to its three
+`s-appuie-sur` sources. Every connector wrote only where its role allows.
+
+What the run did *not* show: two members. All documents have one author, so
+the cross-member queries return nothing; stigmergy between people is still
+untested. Defects and the procedure changes it suggests are in the
+[procedures README](../procedures/README.md#proposed-not-adopted).
+
 ## Open, and to verify live before relying on it
 
 - The settle delay, the retention count and which statuses exist: proposed
