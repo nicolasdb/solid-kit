@@ -358,3 +358,8 @@ compares keys of the same kind.
   whether a newer term has replaced it.
 - The agent → human back-link of §2: which predicate, and who first needs to
   read it. Deferred by solid-backoffice slice D (27 Sep 2026).
+- The `hs:` namespace (`https://pod.nicolasdb.eu/hyperscope/vocab#`) is
+  hosted on one collective's pod but used by all of them. A neutral one
+  (w3id, or the kit's domain) is the target; the rename is mechanical, and
+  to be deliberated. Until then the procedures say never to replace it
+  ([procedures README](../procedures/README.md#open)).
