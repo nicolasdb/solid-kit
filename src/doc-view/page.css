@@ -1,0 +1,15 @@
+/* Only what the server's identity stylesheet (provider main.css) gets wrong
+   for a document. Everything is under body.doc-view, which the script sets
+   only once a document has been re-rendered: login pages never match. */
+body.doc-view { background: var(--surface); color: var(--text-primary); font-family: var(--font-body); }
+body.doc-view :is(header h1, footer, footer a) { color: var(--text-secondary); }
+/* The identity stylesheet narrows body, so the page colour belongs on html. */
+html:has(> body.doc-view) { background: var(--surface); }
+body.doc-view :is(header, footer) { border-color: var(--border-subtle); }
+body.doc-view main { max-width: 48rem; }
+/* The identity stylesheet strips bullets and recolours paragraphs and headings. */
+body.doc-view .prose :is(p, h1, h2, h3, h4, li, strong) { color: inherit; }
+body.doc-view .prose ul > li { list-style-type: disc; }
+body.doc-view .prose ol > li { list-style-type: decimal; }
+body.doc-view .prose li { margin: 0 0 0.25em; }
+body.doc-view .prose a { color: var(--accent); }

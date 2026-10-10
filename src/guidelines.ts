@@ -35,6 +35,10 @@ import {
   type Checkpoint,
 } from "./ui/patterns";
 import { announce, focusView } from "./ui/a11y";
+import { renderMarkdown } from "./ui/markdown";
+
+const PROSE_SAMPLE = `---\ntitre: Un compte-rendu\nsujets: [communauté, stigmergie]\n---\n# Titre\n\nUn paragraphe avec **du gras**, du \`code\` et [un lien](https://example.org).\n\n- un\n- deux\n\n> Une citation.\n`;
+
 
 const root = document.querySelector<HTMLDivElement>("#guidelines")!;
 
@@ -343,6 +347,21 @@ function render(): void {
             — "Saved", "3 results" — not for anything they would need to read.
           </p>
         </div>`
+      )}
+
+      ${section(
+        "prose",
+        "Showing a document from a pod",
+        `Markdown is rendered by renderMarkdown and shown in a .prose element,
+         in an app and on the pod's public page alike, so a file reads the same
+         signed in or not. A YAML header becomes a list of fields.`,
+        demo(
+          "renderMarkdown + .prose",
+          `<div class="prose">${renderMarkdown(PROSE_SAMPLE)}</div>`,
+          `Output is sanitized: whoever can write the file can put anything in
+           it. Without the header handling, <code>---</code> … <code>---</code>
+           renders as a rule and one large heading holding every field.`
+        )
       )}
 
       <footer class="sg-footer meta">
