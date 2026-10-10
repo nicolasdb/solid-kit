@@ -112,9 +112,10 @@ confirms) is still to be deliberated, alongside its principles.
 ## Open
 
 - **The `hs:` namespace** (`https://pod.nicolasdb.eu/hyperscope/vocab#`) is
-  hosted on one collective's pod but serves all of them. A neutral one (w3id
-  or the kit's domain) is the target; the rename is a mechanical pass, to be
-  deliberated. Until then: never replace it.
+  hosted on one collective's pod but serves all of them. Proposed:
+  `https://w3id.org/solid-backoffice/vocab#`
+  ([ADR 006 §7](../adr/006-membership-and-publication-by-pull.md#7-vocabularies-one-generic-one-per-collective-added-2026-10-10)).
+  Until the migration runs: never replace it.
 - **`access-log/` is deprecated** (EPIC9): read receipts move to a log
   server fed on `.acl` reads, consultable per account. The procedures are
   already neutral; `solid_read_resource`'s description in the connector
