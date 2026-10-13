@@ -184,6 +184,43 @@ rather than `vh`.
 
 ---
 
+## Identity pages of a CSS instance
+
+For an instance built with [`skills/css-instance/`](../skills/css-instance/SKILL.md),
+after its deploy, on the live server. The local smoke run
+(`templates/css-instance/test/`) covers sign-up, pods, a test client's consent,
+themes and 360 px; these are what it cannot reach.
+
+**Do:** sign in to a real app (Valisette, the backoffice) from a fresh browser,
+through the instance. On consent, choose a WebID other than the first and
+authorize. Sign out of the app, sign in again.
+
+**Expect:** consent names the app as the app calls itself, lists the account's
+WebIDs grouped by pod with the pod and document readable at a glance, and the
+second time pre-selects the WebID chosen the first time. Nothing on the page
+is in a different font or colour from the rest.
+
+**Observed:**
+
+**Do:** leave an app signed in, delete or recreate the account it used (or
+clear only the app's storage), and return to the app.
+
+**Expect:** "Getting you signed back in", then the app, signed out and
+legible. If the repair fails, "Your sign-in for this app is out of date" with
+a button that works, and the technical detail folded away.
+
+**Observed:**
+
+**Do:** on a phone, choose Dark in the footer of any identity page, then open
+the welcome page and a public `.md` link on the same instance.
+
+**Expect:** all three dark, no light flash on load; the choice does not carry
+to another domain (it is per origin).
+
+**Observed:**
+
+---
+
 ## UX review
 
 Not machine-checkable. Answer these per release, about whatever screens the app

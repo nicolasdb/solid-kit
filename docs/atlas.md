@@ -36,8 +36,8 @@ provider never reaches into an app's data semantics.
 
 | Repo | Owns |
 |---|---|
-| `solid-provider` | CSS config and its identity-page overlay, oxigraph, qdrant, mcp-connector, compose, VPS infra. The product is a humane, fully compliant Solid provider. |
-| `solid-kit` | The app scaffold and shared code, the design system, the deploy pattern, this atlas, the ADRs. |
+| `solid-provider` | CSS config and its instance of the identity-page overlay (skin and words; the overlay itself is the kit's, ADR 009), oxigraph, qdrant, mcp-connector, compose, VPS infra. The product is a humane, fully compliant Solid provider. |
+| `solid-kit` | The app scaffold and shared code, the design system, the deploy pattern, the CSS identity-page overlay and its method (`templates/css-instance/`, `skills/css-instance/`), this atlas, the ADRs. |
 | `solid-backoffice` | Account, WebID and pod management; permissions in plain language; the onboarding path from "why does this exist" to a working account; the membership handshake (ADR 006). Replaces the frozen `pocpod0/backoffice/`. |
 | `valisette` | Triage app. |
 | `solid-sport-tracker` | Session tracker with a sequence timer. |
@@ -78,6 +78,9 @@ These live in [`adr/`](adr/) and apply across repos:
   reads behind it, display reads send `If-None-Match`. Memory only.
 - [008 — Light by default](adr/008-light-by-default.md): dark and high
   contrast are a choice the person makes, never the OS's dark setting.
+- [009 — A CSS instance is a skin over a stock server](adr/009-css-instance-is-a-skin-over-stock.md):
+  CSS stays a stock image; the kit's overlay is bind-mounted over its
+  templates, and an instance owns only its skin and its words.
 
 The agent's side of 006 is written as [procedures](procedures/README.md):
 pull and confrontation, copied and adapted by each collective.

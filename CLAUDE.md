@@ -151,6 +151,15 @@ for every deploy of this one.
 `hetzner-gateway/nginx/conf.d/` and deployed from there — that repo stays the
 source of truth for routing.
 
+## CSS instances
+
+`templates/css-instance/` is the identity-page overlay for a Community Solid
+Server instance, and `skills/css-instance/` the method that applies it
+([ADR 009](docs/adr/009-css-instance-is-a-skin-over-stock.md)). Its `main.css`
+and `pod-ui.js` are generic: a change there is for every instance, checked with
+`test/try-local.sh` + `test/smoke.mjs`. A skin is checked with
+`npm run audit -- --skin <skin.css>`.
+
 ## Out of scope, on purpose
 
 No demo-mode framework ([ADR 005](docs/adr/005-demo-mode-is-per-app.md)), no
