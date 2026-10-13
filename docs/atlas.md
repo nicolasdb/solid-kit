@@ -76,6 +76,8 @@ These live in [`adr/`](adr/) and apply across repos:
 - [007 — Reads revalidate; a copy is never trusted](adr/007-reads-revalidate-never-trust-a-copy.md):
   independent reads start together, a screen draws from the last load and
   reads behind it, display reads send `If-None-Match`. Memory only.
+- [008 — Light by default](adr/008-light-by-default.md): dark and high
+  contrast are a choice the person makes, never the OS's dark setting.
 
 The agent's side of 006 is written as [procedures](procedures/README.md):
 pull and confrontation, copied and adapted by each collective.

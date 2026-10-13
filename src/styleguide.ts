@@ -11,7 +11,9 @@
  */
 import "./styles/core.css";
 import "./styles/theme.css";
+import "./styles/patterns.css";
 import "./styles/styleguide.css";
+import { currentTheme, renderThemeSwitch, wireThemeSwitch } from "./ui/theme";
 
 const root = document.querySelector<HTMLDivElement>("#styleguide")!;
 
@@ -101,31 +103,11 @@ const SPACE_STEPS = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20];
 const RADII = ["--radius-none", "--radius-sm", "--radius-md", "--radius-lg"];
 
 /**
- * Three states, not two: an explicit choice stamps `data-theme`, and "system"
- * removes the stamp so `prefers-color-scheme` decides.
- *
- * Held here rather than read back off the DOM because "system" and "light"
- * both resolve to the same tokens on a light OS — only the stored choice can
- * tell them apart, and the switch has to show which one is actually selected.
+ * The floor the badges hold a text token to: AA everywhere, AAA in the
+ * high-contrast theme — the same two floors `npm run audit` enforces.
  */
-type ThemeChoice = "light" | "dark" | "system";
-
-let currentTheme: ThemeChoice = "system";
-
-/** Restores the stored choice. Run before the first render. */
-function applyStoredTheme(): void {
-  let stored: string | null = null;
-  try {
-    stored = localStorage.getItem("solid-kit:styleguide-theme");
-  } catch {
-    // Storage unavailable: fall through to the system default.
-  }
-  currentTheme =
-    stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
-
-  if (currentTheme === "system") document.documentElement.removeAttribute("data-theme");
-  else document.documentElement.setAttribute("data-theme", currentTheme);
-}
+const contrastFloor = (): { min: number; name: string } =>
+  currentTheme() === "contrast" ? { min: 7, name: "AAA" } : { min: 4.5, name: "AA" };
 
 function swatchRow(token: string, against?: string): string {
   const value = readToken(token);
@@ -133,10 +115,11 @@ function swatchRow(token: string, against?: string): string {
   if (against) {
     const ratio = contrast(value, readToken(against));
     if (ratio !== null) {
-      const pass = ratio >= 4.5;
+      const floor = contrastFloor();
+      const pass = ratio >= floor.min;
       badge = `<span class="badge ${pass ? "pass" : "fail"}">${ratio.toFixed(
         2
-      )}:1 ${pass ? "AA" : "below AA"}</span>`;
+      )}:1 ${pass ? floor.name : `below ${floor.name}`}</span>`;
     }
   }
   return `
@@ -178,17 +161,7 @@ function render(): void {
         </div>
         <div class="sg-themes">
           <span class="label-mono">Theme</span>
-          <div class="sg-switch" role="group" aria-label="Theme">
-            ${(["light", "dark", "system"] as ThemeChoice[])
-              .map(
-                (choice) => `
-              <button data-theme-set="${choice}" class="ghost"
-                      aria-pressed="${choice === currentTheme}">
-                ${choice[0].toUpperCase()}${choice.slice(1)}
-              </button>`
-              )
-              .join("")}
-          </div>
+          ${renderThemeSwitch()}
         </div>
       </header>
 
@@ -196,7 +169,8 @@ function render(): void {
         <h2>Color slots</h2>
         <p class="lead">
           Contrast is measured against the surface each token sits on. The floor
-          is WCAG AA 4.5:1, checked in CI by <code>npm run audit</code>.
+          is WCAG AA 4.5:1 — AAA 7:1 in High contrast — checked in CI by
+          <code>npm run audit</code>.
         </p>
         ${colorTable("Surfaces", SURFACE_SLOTS)}
         ${colorTable("Text on --surface", TEXT_SLOTS, "--surface")}
@@ -309,44 +283,12 @@ function render(): void {
   `;
 }
 
-/**
- * Three states, not two: an explicit choice stamps `data-theme`, and "system"
- * removes the stamp so `prefers-color-scheme` decides. Exercising all three is
- * the only way to catch a token defined in one mode but not the other.
- *
- * Wired once, via delegation on `root`: `render()` replaces the buttons'
- * DOM nodes on every theme change, so listeners attached directly to them
- * would need re-wiring after each render — and re-wiring from inside
- * `render()` is what previously caused unbounded render→wire→apply→render
- * recursion the instant a button was clicked.
+/*
+ * Exercising all three themes is the only way to catch a token defined in one
+ * mode but not another. Contrast figures depend on the active theme, so a
+ * choice re-renders the page; the switch itself is wired once, by delegation
+ * on `root` (see wireThemeSwitch), because render() replaces its buttons.
  */
-function wireThemeSwitch(): void {
-  const apply = (choice: ThemeChoice) => {
-    currentTheme = choice;
-
-    if (choice === "system") document.documentElement.removeAttribute("data-theme");
-    else document.documentElement.setAttribute("data-theme", choice);
-
-    try {
-      localStorage.setItem("solid-kit:styleguide-theme", choice);
-    } catch {
-      // Storage unavailable: the theme still applies for this page view.
-    }
-
-    // Contrast figures depend on the active theme, so recompute them. The
-    // pressed state is NOT patched onto the buttons here — render() emits it
-    // from `currentTheme`, so it survives the re-render instead of being
-    // wiped by it.
-    render();
-  };
-
-  root.addEventListener("click", (e) => {
-    const button = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-theme-set]");
-    if (!button) return;
-    apply(button.dataset.themeSet as ThemeChoice);
-  });
-}
-
-applyStoredTheme();
 render();
-wireThemeSwitch();
+wireThemeSwitch(root, render);
+

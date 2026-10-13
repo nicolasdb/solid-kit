@@ -40,17 +40,6 @@
   gap: var(--space-2);
 }
 
-.sg-switch {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.sg-switch button[aria-pressed="true"] {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--text-primary);
-}
-
 /* Tables scroll on their own so the page body never moves sideways. */
 .tablewrap {
   overflow-x: auto;

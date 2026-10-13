@@ -153,14 +153,19 @@ diagnosable.
 
 ---
 
-## 9 · The design system, both themes
+## 9 · The design system, all three themes
 
-**Do:** open `/styleguide.html`. Use the Light / Dark / System switch, and change
-the OS appearance while on "System".
+**Do:** in a fresh private window with the OS set to dark, open the app. Then
+open `/styleguide.html` and use the Light / Dark / High contrast switch. Reload
+on Dark. Finally turn on the OS "increase contrast" setting in a fresh private
+window and open the app again.
 
-**Expect:** every contrast badge reads AA. Nothing unreadable in either theme —
-particularly no token that renders one theme's text on the other theme's ground,
-which is what a slot defined in only one mode looks like.
+**Expect:** the app opens **light** despite the dark OS. Every contrast badge
+reads AA (AAA in High contrast). Nothing unreadable in any theme — particularly
+no token that renders one theme's text on another theme's ground, which is what
+a slot defined in only one mode looks like. The reload stays dark with no flash
+of light. With increased contrast and no stored choice, the app opens in High
+contrast, and choosing Light still wins.
 
 **Observed:**
 

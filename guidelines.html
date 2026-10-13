@@ -8,6 +8,19 @@
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
     <title>solid-kit — UX guidelines</title>
+    <!--
+      The stored theme, stamped before first paint (see src/ui/theme.ts). It
+      cannot wait for the module script: a dark choice would flash light on
+      every load. Keep the key and the choices in step with theme.ts — its
+      test reads this file to check.
+    -->
+    <script>
+      try {
+        var t = localStorage.getItem("solid-kit:theme");
+        if (t === "light" || t === "dark" || t === "contrast")
+          document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="guidelines"></div>
