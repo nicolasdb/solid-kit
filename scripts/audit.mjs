@@ -19,7 +19,7 @@
  * from what actually ships the way a duplicated token table would.
  *
  * `npm run audit -- --skin <file.css>` runs checks 1 and 2 on an identity-page
- * skin instead (templates/css-instance/), plus the skin's own slot,
+ * skin instead (solid-css-overlay's skins/, an instance's overlay/), plus the skin's own slot,
  * --border-control, which outlines inputs and must reach 3:1 (WCAG 1.4.11)
  * on the surfaces a control sits on, in every theme.
  */

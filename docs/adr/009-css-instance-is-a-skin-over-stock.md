@@ -1,6 +1,6 @@
 # ADR 009 — A CSS instance is a skin over a stock server
 
-**Status:** accepted · **Applies to:** every Community Solid Server instance in
+**Status:** accepted, amended 2026-10-14 (see "Amendment") · **Applies to:** every Community Solid Server instance in
 the ecosystem (pod.nicolasdb.eu, Maps of Making, the next one)
 
 ## Context
@@ -51,3 +51,33 @@ with fixes made once and lost once.
 - An instance that needs a page the overlay does not cover adds a copy-only
   override with the same kind of header, and proposes it to the template if a
   second instance would want it.
+
+## Amendment (2026-10-14): an image, not a copy
+
+What stays: CSS is never patched, an instance owns only its skin and its
+words, generic means generic, everything is machine-checked before a deploy.
+
+What changed: the overlay is no longer copied from the kit into each instance.
+It lives in its own repository, [`nicolasdb/solid-css-overlay`](https://github.com/nicolasdb/solid-css-overlay),
+and ships baked into a versioned image, `ghcr.io/nicolasdb/solid-css-overlay:<stock>-<n>`
+(`FROM` stock CSS), alongside the MCP connector's image. An instance pins a
+version in its `.env` and mounts only its own `overlay/` (skin, fonts, welcome
+page). A fix reaches an instance as a version bump, not a re-copy, and nothing
+is built on the instance's side. The skill and the smoke run moved with it;
+the skin audit (`npm run audit -- --skin`) stays here, beside the slots it
+checks.
+
+Two decisions came with the move:
+
+- **New instances create pods as subdomains** (`<name>.<server host>`), not
+  folders. An instance that already has folder pods (pocpod0) keeps them for
+  good: with the file backend, switching would re-read every pod's data under
+  another address (ADR 002: the URI is the identity).
+- **One component in the image, `PodNameGuard`.** With subdomains a pod name
+  becomes a hostname, and stock CSS checks only that it is not empty, so
+  `open_fab` made a pod no certificate covers. The guard refuses such names
+  and reserved ones on the server. It is the exception to "files where stock
+  CSS already looks"; a second component would need its own decision.
+
+The decision to copy rather than package (ADR 004) still holds for apps: an
+app's code is meant to diverge. A server's identity pages are not.

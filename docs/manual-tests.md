@@ -186,9 +186,8 @@ rather than `vh`.
 
 ## Identity pages of a CSS instance
 
-For an instance built with [`skills/css-instance/`](../skills/css-instance/SKILL.md),
-after its deploy, on the live server. The local smoke run
-(`templates/css-instance/test/`) covers sign-up, pods, a test client's consent,
+For an instance running the `solid-css-overlay` image, after its deploy, on the
+live server. That repo's local smoke run (`test/`) covers sign-up, pods, a test client's consent,
 themes and 360 px; these are what it cannot reach.
 
 **Do:** sign in to a real app (Valisette, the backoffice) from a fresh browser,

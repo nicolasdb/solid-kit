@@ -153,11 +153,10 @@ source of truth for routing.
 
 ## CSS instances
 
-`templates/css-instance/` is the identity-page overlay for a Community Solid
-Server instance, and `skills/css-instance/` the method that applies it
-([ADR 009](docs/adr/009-css-instance-is-a-skin-over-stock.md)). Its `main.css`
-and `pod-ui.js` are generic: a change there is for every instance, checked with
-`test/try-local.sh` + `test/smoke.mjs`. A skin is checked with
+The identity-page overlay, its method and its smoke run moved to
+[`solid-css-overlay`](https://github.com/nicolasdb/solid-css-overlay), which
+ships them as an image ([ADR 009](docs/adr/009-css-instance-is-a-skin-over-stock.md),
+amended). What stays here is the skin audit, beside the slots it checks:
 `npm run audit -- --skin <skin.css>`.
 
 ## Out of scope, on purpose
