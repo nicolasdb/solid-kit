@@ -61,6 +61,30 @@ No framework, no router. Screens are functions replacing the contents of
 `#app`. Three apps converged on this independently at this size; don't
 introduce a component system without a reason bigger than taste.
 
+Two consequences of this shape, both found the hard way and easy to reintroduce:
+
+**A re-render destroys whatever the screen it replaces was holding onto** — a
+running timer and its `setInterval`, an unsaved but un-drafted keystroke, an
+open `<details>`. There is no diffing to preserve it. A global setting that
+must apply everywhere (theme is the easy case) is safe to flip from any screen.
+One that forces a *full* re-render to take effect — because it changes strings
+baked into markup across every screen, say — is not: firing it from a screen
+that holds volatile state silently discards that state. Put that kind of
+toggle on a screen that already re-renders wholesale on its own (a settings or
+picker screen), not on a persistent bar layered over a screen with something
+running.
+
+**Class names are the only namespacing there is, so an identically-named class
+used for two different things on two different screens collides silently.**
+A card reusing a list's `.is-current` for "this one is the default choice"
+will also inherit whatever `.is-current` means on the screen that class was
+written for — a size bump, an animation, a color — with no error, just a
+render that looks wrong for a reason that isn't where you'd look. Screen- or
+feature-specific effect classes (a highlight, a live-updating indicator) want
+a name that says what screen they belong to, not just what state they mark;
+generic state words (`is-active`, `is-selected`) are fine only when every
+screen that uses them means the same visual thing by them.
+
 - `src/config.ts` — everything an app changes. `SESSION_ID` **must be unique
   per app**: two apps on one origin sharing an id clobber each other's tokens,
   which is the bug that forced valisette and the backoffice onto separate
@@ -82,6 +106,20 @@ introduce a component system without a reason bigger than taste.
   other rules for fast screens: [ADR 007](docs/adr/007-reads-revalidate-never-trust-a-copy.md).
 - `src/lib/draft.ts` — `makeDraftStore<T>`, for the window where the browser
   holds the only copy of the user's work.
+- `src/lib/literal.ts` — `readLiteral`, for a value that may or may not carry a
+  language tag. `getStringNoLocale` returns **null** on a tagged literal, which
+  is invisible right up until something starts tagging — a new writer, an
+  import tool, a language-aware editor — at which point every value read
+  through it goes blank at once, with no error pointing at why. Read for both
+  shapes from the start. Order: the app's preferred language first, then the
+  untagged form (an app is more likely reading its own untagged writes than a
+  real second-choice language), then the rest of the preference list.
+- `src/lib/identity.ts` — `shortWebId`, because a WebID truncated by a trailing
+  ellipsis loses exactly the part that identifies it: scheme and host repeat
+  across every identity at one provider, `/profile/card#me` is the convention
+  nearly every server writes, and what actually distinguishes an identity sits
+  at the end — the part the ellipsis cuts first. Keep the full WebID in a
+  `title` attribute; this is a display shortcut, not a replacement.
 - `src/styles/core.css` — structure and the slot contract. Project-agnostic:
   never edit it per app. `src/styles/theme.css` is the file to fork for a
   different look.
@@ -158,6 +196,17 @@ The identity-page overlay, its method and its smoke run moved to
 ships them as an image ([ADR 009](docs/adr/009-css-instance-is-a-skin-over-stock.md),
 amended). What stays here is the skin audit, beside the slots it checks:
 `npm run audit -- --skin <skin.css>`.
+
+## Device feedback on mobile
+
+Sound, haptics and "keep the screen on" are not in the kit as code — they are
+only worth wiring in an app that needs them. The platform constraints that cost
+a debugging session each are written down in
+[`docs/device-feedback.md`](docs/device-feedback.md): `AudioContext` starts
+suspended until a user gesture, `navigator.vibrate` does not exist on iOS
+Safari, the wake lock is released on every page hide, and a muted looping video
+is a second door to the same OS sleep inhibition rather than a stronger one.
+Read it before writing any of the three.
 
 ## Out of scope, on purpose
 
