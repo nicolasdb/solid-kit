@@ -43,8 +43,9 @@ collectif. Le changement passe donc par la cérémonie la plus forte, une
 délibération entre membres (voir le glossaire).
 
 **Je suis membre de plusieurs collectifs.**
-Vous avez un dossier partagé par collectif. Votre profil déclare vos
-adhésions, et votre agent s'en sert pour ne jamais mélanger les
+Vous avez un dossier partagé par collectif, que vous choisissez dans le
+backoffice ; votre pod le note dans `settings/collectives.ttl`. Votre
+profil déclare vos adhésions, et votre agent s'en sert pour ne jamais mélanger les
 contributions.
 
 **À quoi servent `inbox/`, `depots/`, `confrontations/`, `chantiers/` et `public/` ?**

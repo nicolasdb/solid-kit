@@ -103,6 +103,7 @@ contredire, l'invariant gagne et tu le signales.
 
 Les procédures nomment les valeurs résolues ainsi : `<pod-collectif>` (le
 dossier de `config.ttl`), `<collectif>` (le sujet `a hs:Collective`),
-`<agent-commun>` (`hs:agent`), `<dossier-partage>` (`hs:bundleFolder`,
-relatif au pod du membre). En majuscules dans les gabarits Turtle. Le
+`<agent-commun>` (`hs:agent`), `<dossier-partage>` (le dossier que le
+membre a choisi : `hs:folder` dans son `settings/collectives.ttl` ;
+`hs:bundleFolder` n'est qu'une suggestion du collectif). En majuscules dans les gabarits Turtle. Le
 préfixe `hs:` n'en est pas un : on ne le remplace jamais.

@@ -9,14 +9,15 @@ side, as the backoffice implements it on the member's and the admin's side.
 |---|---|---|---|---|
 | [`procedure-pull.md`](procedure-pull.md) | v2 | the collective's agent | follows what members announced, snapshots what changed | `depots/` only |
 | [`procedure-confrontation.md`](procedure-confrontation.md) | v3 | the collective's agent | reads each new snapshot against the collective's principles, describes it in a Turtle sidecar, loads the graph | `confrontations/` (report + sidecar, `sujets.ttl` append), `chantiers/` (append), the graph (`graph_ingest`) |
-| [`procedure-contribution.md`](procedure-contribution.md) | v2 | a member's own agent | draws on the collective's graph, deposits in `<dossier-partage>` citing what it builds on, reads the member's inbox | the member's own `<dossier-partage>` only |
+| [`procedure-contribution.md`](procedure-contribution.md) | v3 | a member's own agent | draws on the collective's graph, deposits in `<dossier-partage>` citing what it builds on, reads the member's inbox | the member's own `<dossier-partage>` only |
 
 Each one is an input → process → output module: it names what it reads,
 what it writes, and it is the only writer of its output.
 
 **One text for every collective.** No procedure holds a collective's
 address. Each starts by resolving the collective (contribution: the
-member's `org:memberOf` → `config.ttl`; pull and confrontation: `config.ttl`,
+member's `org:memberOf` → `config.ttl`, then the folder the member chose in
+their own `settings/collectives.ttl`; pull and confrontation: `config.ttl`,
 then a check that the connector's WebID is `hs:agent`, stopping otherwise).
 They are in French, were first run by hand from a claude.ai session with the
 agent's own connector (2026-09-24, see ADR 006, "Live evidence"), and are
@@ -32,7 +33,7 @@ What each procedure resolves at its step 0, and how the text names it:
 | `<pod-collectif>` | `<POD-COLLECTIF>` | the folder that holds `config.ttl` |
 | `<collectif>` | `<IRI-DU-COLLECTIF>` | the subject `a hs:Collective` (what members cite in `org:memberOf`) |
 | `<agent-commun>` | `<AGENT-COMMUN>` | `hs:agent` |
-| `<dossier-partage>` | `<URL-DU-DOSSIER-PARTAGE-DU-MEMBRE>` | `hs:bundleFolder`, relative to the member's pod |
+| `<dossier-partage>` | `<URL-DU-DOSSIER-PARTAGE-DU-MEMBRE>` | contribution: `hs:folder` of the member's `settings/collectives.ttl` entry for `<collectif>` (solid-backoffice `docs/reference/collectives-file.md`); pull: `as:object` of the announcement. `hs:bundleFolder` is only the collective's suggestion |
 | — | `<NOM-DU-COLLECTIF>` | `foaf:name` of the collective in `config.ttl` |
 
 Uppercase marks a value to substitute inside Turtle, where `<…>` is already
@@ -73,6 +74,20 @@ annexes without numbering them.
 collective's own choices, so another collective's copy can be compared
 against this reference. Each procedure carries its version in its title;
 how a copy learns it is behind is [open](#open).
+
+## Contribution v3, 2026-10-16
+
+The member chooses the folder they share (solid-backoffice slice G); the
+collective's `hs:bundleFolder` became a suggestion. `procedure-contribution.md`
+v2 → v3: §0 reads the choice in the member's `settings/collectives.ttl`
+(Read for the member's agents, given when they share). No entry means
+nothing is shared with that collective: the agent says so and deposits
+nothing, never falling back to `hs:bundleFolder`, which may be a folder the
+collective's agent cannot read. Pull and confrontation are unchanged: they
+already follow the announcement's `as:object`, not `hs:bundleFolder`.
+
+Members who shared before slice G have no entry yet; sharing again from the
+backoffice writes it.
 
 ## Cleanup of 2026-10-01
 

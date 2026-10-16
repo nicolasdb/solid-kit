@@ -1,4 +1,4 @@
-# Procédure de contribution (v2, côté membre)
+# Procédure de contribution (v3, côté membre)
 
 Pour l'agent **d'un membre** (son propre connecteur, pas celui du
 collectif), dans une conversation avec son humain. Elle dit comment
@@ -6,7 +6,12 @@ s'appuyer sur ce que le collectif sait déjà, comment déposer une
 contribution, et quoi faire de l'inbox. C'est la moitié membre du cycle dont
 `procedure-pull.md` et `procedure-confrontation.md` sont la moitié collectif.
 
-Changements depuis la v1 : plus aucune adresse de collectif écrite en dur.
+Changements depuis la v2 : le dossier partagé est celui que ton humain a
+choisi, lu dans `settings/collectives.ttl` sur son pod (solid-backoffice,
+slice G). `hs:bundleFolder` n'est plus qu'une suggestion du collectif : on
+n'y dépose rien sans que ton humain l'ait confirmé.
+
+Changements de la v2 : plus aucune adresse de collectif écrite en dur.
 La même procédure sert à tout membre de tout collectif ; les adresses se
 lisent dans le profil du membre et dans le `config.ttl` du collectif.
 
@@ -30,9 +35,29 @@ traces, pas des déclarations.
    - `hs:agent` : l'agent commun (`<agent-commun>`) ;
    - `hs:roster` : la liste des membres ;
    - `ldp:inbox` : l'inbox du collectif ;
-   - `hs:bundleFolder` : le dossier partagé, relatif au pod de ton humain
-     (`<dossier-partage>`, par exemple `output2/<nom>/`).
-3. Si la conversation porte sur un collectif précis, travaille avec celui-là
+   - `hs:bundleFolder` : le dossier que le collectif **suggère**, relatif au
+     pod de ton humain (par exemple `output2/<nom>/`). Ce n'est pas
+     forcément celui qu'il partage.
+3. Trouve le dossier que ton humain partage avec ce collectif
+   (`<dossier-partage>`). Lis `settings/collectives.ttl` à la racine de son
+   pod (ton humain t'y donne la lecture en partageant) :
+
+       <#c-…> a hs:SharedFolder ;
+           hs:collective <collectif> ;
+           hs:folder     <https://…/son-pod/le-dossier/> .
+
+   - **Une entrée** dont `hs:collective` est `<collectif>` : son
+     `hs:folder` est `<dossier-partage>`. Une adresse qui n'est pas un
+     dossier (sans `/` final) ou qui sort de son pod ne compte pas.
+   - **Pas d'entrée, ou fichier absent (404)** : ton humain ne partage pas
+     (ou plus) de dossier avec ce collectif, ou il l'a partagé avant que le
+     backoffice ne note son choix. Ne dépose rien. Dis-le-lui, et propose
+     de partager depuis le backoffice (Collectives → le collectif → Share).
+     `hs:bundleFolder` peut servir d'exemple, jamais d'adresse de dépôt.
+   - **Refus (403)** : tu n'as pas encore la lecture du fichier ; le
+     backoffice la donne à tes agents quand ton humain partage. Dis-le, et
+     ne devine pas le dossier.
+4. Si la conversation porte sur un collectif précis, travaille avec celui-là
    seul. Si ton humain est membre de plusieurs collectifs et que ce n'est pas
    clair, demande-lui lequel.
 
