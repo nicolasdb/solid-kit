@@ -87,7 +87,8 @@ introduce a component system without a reason bigger than taste.
   different look.
 - `src/ui/` — the UX layer. `ux.ts` holds the preferences that are values,
   `patterns.ts` the components that enforce them, `a11y.ts` the focus and
-  announcement helpers the shell calls on every render.
+  announcement helpers the shell calls on every render, `theme.ts` the theme
+  switch the shell shows on every screen.
 
 ### Pod-root discovery
 
@@ -117,11 +118,17 @@ surfacing the server's error graph.
 set in every mode — a token defined for light but not dark renders one theme's
 text on the other theme's ground.
 
-Dark mode is `prefers-color-scheme` with a `[data-theme]` override, not a
-hardcoded class and not JS-applied inline styles. Text tokens clear WCAG AA
-4.5:1 against the surface behind them; `--text-tertiary` is the one that gets
-this wrong in practice, because it carries small mono labels — re-check any
-replacement against both `--surface` and `--surface-elevated`.
+Light is the default for everyone; dark and high contrast are a choice, made
+with the switch in `src/ui/theme.ts` and stamped on `<html data-theme>` before
+first paint by an inline script in each HTML entry
+([ADR 008](docs/adr/008-light-by-default.md)). Never add a
+`prefers-color-scheme: dark` block — the audit refuses it; the only OS signal
+followed is `prefers-contrast: more`. Not a hardcoded class and not
+JS-applied inline styles. Text tokens clear WCAG AA 4.5:1 against the surface
+behind them, and AAA 7:1 in the high-contrast theme, whose borders also reach
+3:1; `--text-tertiary` is the one that gets this wrong in practice, because it
+carries small mono labels — re-check any replacement against both `--surface`
+and `--surface-elevated`.
 
 Two layout rules are load-bearing: `100dvh` never `vh` (`vh` ignores retracting
 browser bars and pushes bottom controls underneath them), and
@@ -143,6 +150,14 @@ for every deploy of this one.
 `deploy/gateway-vhost.conf.tmpl` is versioned here but must be installed into
 `hetzner-gateway/nginx/conf.d/` and deployed from there — that repo stays the
 source of truth for routing.
+
+## CSS instances
+
+The identity-page overlay, its method and its smoke run moved to
+[`solid-css-overlay`](https://github.com/nicolasdb/solid-css-overlay), which
+ships them as an image ([ADR 009](docs/adr/009-css-instance-is-a-skin-over-stock.md),
+amended). What stays here is the skin audit, beside the slots it checks:
+`npm run audit -- --skin <skin.css>`.
 
 ## Out of scope, on purpose
 

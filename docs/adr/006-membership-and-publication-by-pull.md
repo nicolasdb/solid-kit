@@ -274,6 +274,74 @@ Open: what leaves the graph when a member leaves (their snapshots stay,
 §3); whether the sidecar's topics hold up across model changes (a
 reference set of documents, confronted again when the model changes).
 
+### 7. Vocabularies: one generic, one per collective (added 2026-10-10)
+
+Proposed while setting up Maps of Making, the second collective, which
+showed the provisional `hs:` namespace for what it is: HyperScope's pod
+naming a vocabulary every collective must use.
+
+**The generic namespace** is
+`https://w3id.org/solid-backoffice/vocab#`. It names the mechanism, not a
+collective or a host:
+
+- a permanent w3id redirect (a pull request to `perma-id/w3id.org`), to a
+  `vocab.ttl` kept in the solid-backoffice repo and served wherever it is
+  deployed: moving domains or pods changes the redirect, never the IRI;
+- **one namespace for all its current uses**: the collective protocol
+  (`Collective`, `roster`, `agent`, `bundleFolder`, `procedures`, `guide`,
+  `requires`), the backoffice's own data (`Followed`, `lastSeen`,
+  `favourite`, `unreadableSince` in each user's `settings/following.ttl`)
+  and the pipeline's (`declareePar`, `statut`, `remplaceePar`, the
+  confrontation colours). Splitting protocol from app was considered and
+  left out: two renames for an ownership line nobody needs to draw yet;
+- the prefix label is free; new documents write `sb:`. A label is not part
+  of the data, so `hs:` in an old document still reads right as long as it
+  is bound to the new IRI.
+
+**A collective's own namespace** holds the terms only that collective
+means. It is optional, declared by the collective, and never needed by the
+backoffice or the procedures to work:
+
+- **where**: on an IRI the collective controls and can keep when it moves,
+  its own domain or w3id (`https://w3id.org/mapsofmaking/vocab#`), not a
+  pod path. Its terms end up in members' documents, which the collective
+  cannot rewrite when its pod moves;
+- **what**: the fields it asks of its members beyond the generic ones, and
+  the terms of its own documents. Standard vocabularies first (`foaf:`,
+  `schema:`, `vcard:`, `org:`); a collective term only when none fits;
+- **how it is asked**: through the generic `sb:requires <member-shape.ttl>`
+  (reserved since the first `config.ttl`), a SHACL shape whose properties
+  may use any namespace. The backoffice shows what the shape asks (with its
+  `sh:name` and `sh:description`) and checks a request against it; it
+  never needs to understand a collective term to do so.
+
+**Features are generic terms.** What a collective switches on is something
+the backoffice and the agents must understand, so it is named in the
+generic namespace: `sb:feature sb:Sharing` (members share a folder with
+`sb:agent`), later `sb:Graph` and others. A collective that lists no
+`sb:feature` keeps today's behaviour, sharing on. Membership only (Maps of
+Making at its start) lists none of them, and then `sb:agent` is optional:
+today the backoffice requires it, and a collective with no agent has to
+name one that does not exist yet.
+
+**Migration**, mechanical but across several places:
+
+1. Register the w3id redirect and publish `vocab.ttl` (every term above,
+   with `rdfs:label` and `rdfs:comment`).
+2. solid-backoffice: `src/lib/vocab.ts` moves to the new IRI; parsers of
+   `config.ttl` and `following.ttl` accept both IRIs for a while, writers
+   use only the new one, so `following.ttl` is rewritten on its next save.
+3. The `config.ttl` of each collective (two today) is edited by its
+   owner; the template here, the examples and the procedures follow, the
+   procedures by ceremony (a new version each).
+4. Snapshots stay as they were (§3): the graph and the procedures read the
+   old IRI in documents written before the change, without rewriting them.
+
+Not built. Open: whether `sb:requires` fields live in the member's public
+profile or in a document they grant the collective Read on (a field a
+collective asks for is not always public); how a request is refused against
+a shape (an `as:Reject` naming what is missing).
+
 ## Consequences
 
 - **A member onboards with one grant.** They grant the collective's agent Read
@@ -341,6 +409,22 @@ information as `modified`. The agent matched a stored ETag against a listed
 implementation detail. The procedure now records both keys and only ever
 compares keys of the same kind.
 
+**2026-10-01: generic procedures and the collectif skill, both directions.**
+Two claude.ai projects, one connector each. As the common agent (role read
+from `hs:agent`, delegation from the collective account's profile,
+procedures from `hs:procedures`): pull v2 snapshotted 3 documents, marked
+two removed members' sources `membre-retire` and a 6 MB PNG
+`binaire-en-attente`; confrontation v3 flagged the 3 🟧 and the graph loaded
+26 of 26 documents. As a member's agent: a `graph_query` led to a new
+document, written to the shared folder only after confirmation; the next
+pull and confrontation brought it back into the graph linked to its three
+`s-appuie-sur` sources. Every connector wrote only where its role allows.
+
+What the run did *not* show: two members. All documents have one author, so
+the cross-member queries return nothing; stigmergy between people is still
+untested. Defects and the procedure changes it suggests are in the
+[procedures README](../procedures/README.md#proposed-not-adopted).
+
 ## Open, and to verify live before relying on it
 
 - The settle delay, the retention count and which statuses exist: proposed
@@ -358,3 +442,9 @@ compares keys of the same kind.
   whether a newer term has replaced it.
 - The agent → human back-link of §2: which predicate, and who first needs to
   read it. Deferred by solid-backoffice slice D (27 Sep 2026).
+- The `hs:` namespace (`https://pod.nicolasdb.eu/hyperscope/vocab#`) is
+  hosted on one collective's pod but used by all of them. Proposed in §7:
+  `https://w3id.org/solid-backoffice/vocab#`, and a namespace per
+  collective for its own terms. Until the migration runs, the procedures
+  say never to replace it
+  ([procedures README](../procedures/README.md#open)).

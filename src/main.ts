@@ -16,6 +16,7 @@ import { describePodError, getPrimaryPodUrl, isAuthError } from "./lib/pod";
 import { APP_NAME, DEFAULT_IDENTIFIER } from "./config";
 import { focusView, trackInputModality } from "./ui/a11y";
 import { renderError, renderPending } from "./ui/patterns";
+import { renderThemeSwitch, wireThemeSwitch } from "./ui/theme";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -24,6 +25,19 @@ function esc(value: string): string {
   const div = document.createElement("div");
   div.textContent = value;
   return div.innerHTML;
+}
+
+/**
+ * The theme switch, at the foot of every screen a person can stop at — Light
+ * by default, Dark and High contrast by choice (ADR 008). Part of the shell,
+ * not of `renderHome`, so an app keeps it when the placeholder is replaced.
+ */
+function themeFooter(): string {
+  return `
+    <footer class="stack">
+      <hr />
+      ${renderThemeSwitch()}
+    </footer>`;
 }
 
 async function main(): Promise<void> {
@@ -66,6 +80,7 @@ function renderLoginView(message?: string): void {
         <div><button type="submit">Sign in</button></div>
       </form>
       ${message ? `<p class="error">${esc(message)}</p>` : ""}
+      ${themeFooter()}
     </main>
   `;
 
@@ -119,6 +134,7 @@ function renderErrorView(webId: string, err: unknown): void {
         technical: err instanceof Error ? err.message : String(err),
       })}
       <p class="meta">Signed in as <code>${esc(webId)}</code>.</p>
+      ${themeFooter()}
     </main>
   `;
   document.querySelector<HTMLButtonElement>("#logout")!.addEventListener("click", async () => {
@@ -183,6 +199,7 @@ async function renderHome(webId: string, podUrl: string): Promise<void> {
         </p>
         <p class="meta">This block goes when you replace <code>renderHome</code>.</p>
       </nav>
+      ${themeFooter()}
     </main>
   `;
   document.querySelector<HTMLButtonElement>("#logout")!.addEventListener("click", async () => {
@@ -194,4 +211,6 @@ async function renderHome(webId: string, podUrl: string): Promise<void> {
 }
 
 trackInputModality();
+// Once, on the container: every screen replaces its contents, switch included.
+wireThemeSwitch(app);
 main();

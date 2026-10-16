@@ -1,0 +1,30 @@
+# config.ttl — a collective's entry point, for the backoffice and for agents.
+#
+# Copy to <POD-COLLECTIF>/config.ttl and replace every UPPERCASE value.
+# Field by field: solid-backoffice docs/reference/collective-files.md.
+# The tree it points to: solid-kit docs/collectives/create-a-collective.md.
+#
+# <#NOM> is the collective's IRI and its group IRI: members write
+# `org:memberOf <POD-COLLECTIF/config.ttl#NOM>`.
+#
+# hs: is the common, provisional vocabulary, the same for every collective:
+# do not replace it with your own pod's address (solid-kit ADR 006, open).
+
+@prefix hs:   <https://pod.nicolasdb.eu/hyperscope/vocab#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix ldp:  <http://www.w3.org/ns/ldp#> .
+@prefix schema: <http://schema.org/> .
+
+<#NOM> a hs:Collective, foaf:Group ;
+    foaf:name "NOM-DU-COLLECTIF" ;
+    hs:roster <membres.ttl> ;
+    ldp:inbox <inbox/> ;
+    # The common agent: the only writer on this pod besides its owner.
+    hs:agent <agents/agent#me> ;
+    # Where agents find procedures + principles, and the guide.
+    hs:procedures <principles/> ;
+    hs:guide <guide/> ;
+    # schema:slogan "[A title for newcomers]" ;
+    # schema:description "[One paragraph: what joining means]" ;
+    # The folder members share through, relative to their own pod.
+    hs:bundleFolder "output2/NOM/" .

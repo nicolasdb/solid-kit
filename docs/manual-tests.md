@@ -153,14 +153,19 @@ diagnosable.
 
 ---
 
-## 9 · The design system, both themes
+## 9 · The design system, all three themes
 
-**Do:** open `/styleguide.html`. Use the Light / Dark / System switch, and change
-the OS appearance while on "System".
+**Do:** in a fresh private window with the OS set to dark, open the app. Then
+open `/styleguide.html` and use the Light / Dark / High contrast switch. Reload
+on Dark. Finally turn on the OS "increase contrast" setting in a fresh private
+window and open the app again.
 
-**Expect:** every contrast badge reads AA. Nothing unreadable in either theme —
-particularly no token that renders one theme's text on the other theme's ground,
-which is what a slot defined in only one mode looks like.
+**Expect:** the app opens **light** despite the dark OS. Every contrast badge
+reads AA (AAA in High contrast). Nothing unreadable in any theme — particularly
+no token that renders one theme's text on another theme's ground, which is what
+a slot defined in only one mode looks like. The reload stays dark with no flash
+of light. With increased contrast and no stored choice, the app opens in High
+contrast, and choosing Light still wins.
 
 **Observed:**
 
@@ -174,6 +179,42 @@ because `env(safe-area-inset-*)` resolves to zero in most of them.
 **Expect:** content clears the notch and the gesture bar. Rotate, and scroll to
 the bottom: nothing sits under a browser bar, because the layout uses `dvh`
 rather than `vh`.
+
+**Observed:**
+
+---
+
+## Identity pages of a CSS instance
+
+For an instance running the `solid-css-overlay` image, after its deploy, on the
+live server. That repo's local smoke run (`test/`) covers sign-up, pods, a test client's consent,
+themes and 360 px; these are what it cannot reach.
+
+**Do:** sign in to a real app (Valisette, the backoffice) from a fresh browser,
+through the instance. On consent, choose a WebID other than the first and
+authorize. Sign out of the app, sign in again.
+
+**Expect:** consent names the app as the app calls itself, lists the account's
+WebIDs grouped by pod with the pod and document readable at a glance, and the
+second time pre-selects the WebID chosen the first time. Nothing on the page
+is in a different font or colour from the rest.
+
+**Observed:**
+
+**Do:** leave an app signed in, delete or recreate the account it used (or
+clear only the app's storage), and return to the app.
+
+**Expect:** "Getting you signed back in", then the app, signed out and
+legible. If the repair fails, "Your sign-in for this app is out of date" with
+a button that works, and the technical detail folded away.
+
+**Observed:**
+
+**Do:** on a phone, choose Dark in the footer of any identity page, then open
+the welcome page and a public `.md` link on the same instance.
+
+**Expect:** all three dark, no light flash on load; the choice does not carry
+to another domain (it is per origin).
 
 **Observed:**
 

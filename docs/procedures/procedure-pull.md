@@ -1,73 +1,83 @@
-# Procédure — tirer les dépôts (pull)
+# Procédure — tirer les dépôts (pull, v2)
 
-**Exécutée par** l'agent commun `https://pod.nicolasdb.eu/hyperscope/agents/agent#me` :
-aujourd'hui depuis claude.ai (connecteur `hyperscopeMain`), demain par Hermes.
+**Exécutée par** l'agent commun du collectif (`hs:agent` dans son `config.ttl`) :
+aujourd'hui depuis claude.ai, demain par Hermes.
 **Déclencheur** : « tire les dépôts annoncés » (ou « lance le pull »).
 **Référence** : ADR 006 du solid-kit (adhésion et publication par pull).
 **À la suite** : `procedure-confrontation.md`, sur les instantanés que ce pull vient de créer.
 
+Changements depuis la v1 : plus aucune adresse de collectif écrite en dur ; l'historique
+propre à un collectif va dans une annexe de sa propre copie, sur son pod.
+
 ## Règles qu'on ne contourne jamais
 
-1. **On écrit uniquement dans `hyperscope/depots/`.** Jamais sur le pod d'un membre, jamais
-   dans `inbox/`, jamais ailleurs dans le pod commun.
+1. **On écrit uniquement dans `<pod-collectif>/depots/`.** Jamais sur le pod d'un membre,
+   jamais dans `inbox/`, jamais ailleurs dans le pod commun.
 2. **Un instantané existant ne se modifie pas et ne se supprime pas.** Un changement à la
    source produit un nouvel instantané, à côté de l'ancien.
 3. **Un refus (401/403) ou une absence (404) est un statut à noter, pas un problème à résoudre.**
    On l'inscrit, on ne réessaie pas, et on ne cherche pas d'autre chemin.
 4. **On lit ce qui est annoncé, rien de plus.** On ne parcourt pas le pod d'un membre en dehors
-   de la source qu'il a déclarée. Chaque lecture laisse une trace chez lui.
+   de la source qu'il a déclarée. Chaque lecture laisse une trace consultable par lui.
 5. **On ne réécrit pas le contenu.** L'instantané garde les octets exacts de l'original, avec
    son nom d'origine.
 
 ## Fichiers utilisés
 
+Tous les chemins sont relatifs à `<pod-collectif>/`, le dossier qui contient `config.ttl`.
+
 | Fichier | Rôle | Accès de l'agent |
 |---|---|---|
-| `hyperscope/config.ttl` | l'IRI du collectif (`config.ttl#hyperscope`) et le dossier partagé (`hs:bundleFolder`) | lecture |
-| `hyperscope/membres.ttl` | qui est membre (reconnu par le collectif) et son nom court, rien d'autre | lecture |
+| `config.ttl` | l'IRI du collectif, l'agent commun (`hs:agent`), le roster (`hs:roster`), l'inbox (`ldp:inbox`), le dossier partagé (`hs:bundleFolder`) | lecture |
+| le roster (`hs:roster`, aujourd'hui `membres.ttl`) | qui est membre (reconnu par le collectif) et son nom court, rien d'autre | lecture |
 | profil de chaque membre | son nom, son agent (`acl:delegates`), et s'il déclare toujours `org:memberOf` | lecture (public) |
-| `hyperscope/inbox/` | annonces `as:Announce` envoyées par les membres | lecture |
-| `hyperscope/depots/sources.ttl` | les sources suivies, leur statut, les annonces déjà traitées | écriture |
-| `hyperscope/depots/<membre>/…` | les instantanés et leur `provenance.ttl` | écriture |
+| l'inbox (`ldp:inbox`) | annonces `as:Announce` envoyées par les membres | lecture |
+| `depots/sources.ttl` | les sources suivies, leur statut, les annonces déjà traitées | écriture |
+| `depots/<membre>/…` | les instantanés et leur `provenance.ttl` | écriture |
 
 Si `depots/sources.ttl` n'existe pas encore, on le crée à partir du modèle en annexe B.
 
 ## Étapes
 
+### 0. Vérifier son rôle
+
+Lire `config.ttl`. Si le WebID de ton connecteur n'est pas `hs:agent`, arrête-toi : cette
+procédure n'est pas pour toi.
+
 ### 1. Lire l'état
 
-- Lire `config.ttl` : l'IRI du collectif est le sujet `hs:Collective`
-  (`<https://pod.nicolasdb.eu/hyperscope/config.ttl#hyperscope>`), le dossier partagé
-  est `hs:bundleFolder` (aujourd'hui `output2/hyperscope/`). Ne pas les écrire en dur.
-- Lire `membres.ttl` pour savoir qui est reconnu (`<config.ttl#hyperscope> foaf:member <WebID>`)
-  et sous quel nom court (`<WebID> foaf:nick`). Le roster ne contient ni noms ni agents :
-  ils se lisent dans le profil de chaque membre.
+- Dans `config.ttl` : l'IRI du collectif est le sujet `a hs:Collective` (`<collectif>`) ;
+  le dossier partagé est `hs:bundleFolder`. Ne pas les écrire en dur.
+- Lire le roster pour savoir qui est reconnu (`<collectif> foaf:member <WebID>`) et sous quel
+  nom court (`<WebID> foaf:nick`). Le roster ne contient ni noms ni agents : ils se lisent dans
+  le profil de chaque membre. **Un `foaf:nick` sans `foaf:member` correspondant n'est pas un
+  membre** : on l'ignore et on le signale dans le rapport.
 - Lire `depots/sources.ttl` pour connaître les sources suivies, leur statut et la dernière
   version tirée de chaque fichier.
 
 ### 2. Traiter les annonces nouvelles
 
-Lister `inbox/`. L'inbox contient aussi des demandes d'adhésion (`as:Join`), que le
-backoffice traite et supprime, et parfois des messages inconnus : **on ne lit que les
-`as:Announce`, et on ne supprime jamais rien dans `inbox/`** (règle 1). Toute annonce
-`as:Announce` absente de `sources.ttl` est nouvelle. Pour chacune :
+Lister l'inbox. Elle contient aussi des demandes d'adhésion (`as:Join`), que le backoffice
+traite et supprime, et parfois des messages inconnus : **on ne lit que les `as:Announce`, et
+on ne supprime jamais rien dans l'inbox** (règle 1). Toute annonce `as:Announce` absente de
+`sources.ttl` est nouvelle. Pour chacune :
 
-- **Si l'acteur (`as:actor`) est membre** (listé dans `membres.ttl`, ou déclaré comme agent
-  par un membre listé, via `acl:delegates` dans **le profil de ce membre**) : ajouter
-  `as:object` aux sources suivies, avec le statut `suivie`.
+- **Si l'acteur (`as:actor`) est membre** (listé dans le roster, ou déclaré comme agent par un
+  membre listé, via `acl:delegates` dans **le profil de ce membre**) : ajouter `as:object` aux
+  sources suivies, avec le statut `suivie`.
 - **Sinon** : ne rien tirer. Inscrire l'annonce avec le statut `en-attente-humaine`.
 - **Dans les deux cas** : inscrire l'annonce comme traitée. On ne la retraite pas au pull suivant.
 
 **Phase 0, sans annonce.** Tant que les membres n'envoient pas encore d'annonce, un admin peut
-déclarer une source en séance (« `…/output2/hyperscope/` de Nicolas est une source »). On
+déclarer une source en séance (« `…/<dossier-partagé>` de tel membre est une source »). On
 l'inscrit alors avec `hs:declareePar "session"` à la place d'une annonce.
 
 **Une source de phase 0 et une annonce du même membre.** Quand un membre qui a une source
-`hs:declareePar "session"` annonce une source, les deux peuvent suivre le même contenu
-(`output2hyperscope/` puis `output2/hyperscope/`, par exemple) et produire des instantanés
-jumeaux. **On ne devine pas.** On suit la nouvelle source normalement, on laisse l'ancienne
-telle quelle, et le rapport signale « source de phase 0 peut-être remplacée ». C'est une
-personne qui décide, en séance. Si elle confirme, on inscrit sur l'ancienne source :
+`hs:declareePar "session"` annonce une source, les deux peuvent suivre le même contenu et
+produire des instantanés jumeaux. **On ne devine pas.** On suit la nouvelle source normalement,
+on laisse l'ancienne telle quelle, et le rapport signale « source de phase 0 peut-être
+remplacée ». C'est une personne qui le confirme, en séance. Si elle confirme, on inscrit sur
+l'ancienne source :
 
 ```turtle
 hs:statut        "remplacee" ;
@@ -80,13 +90,13 @@ Une source `remplacee` n'est plus tirée. Ses instantanés restent (règle 2).
 ### 3. Vérifier que l'adhésion tient toujours
 
 L'adhésion se lit des deux côtés, et chaque côté peut y mettre fin seul (ADR 006 §2). Le
-backoffice qui retire un membre enlève son droit de lecture sur `membres.ttl`, mais il ne
-peut pas toucher au droit que le membre a donné à l'agent sur son propre pod : la lecture de
-sa source peut donc encore réussir. C'est ici qu'on s'arrête. Pour chaque source `suivie` :
+backoffice qui retire un membre enlève son droit de lecture sur le roster, mais il ne peut pas
+toucher au droit que le membre a donné à l'agent sur son propre pod : la lecture de sa source
+peut donc encore réussir. C'est ici qu'on s'arrête. Pour chaque source `suivie` :
 
-- **membre absent de `membres.ttl`** : statut `membre-retire`, avec la date ;
-- **profil qui ne déclare plus `org:memberOf <IRI du collectif>`** : statut `membre-parti`,
-  avec la date ;
+- **membre absent du roster** (pas de `foaf:member`) : statut `membre-retire`, avec la date ;
+- **profil qui ne déclare plus `org:memberOf <collectif>`** : statut `membre-parti`, avec la
+  date ;
 - **profil illisible** : on ne change rien, on tire normalement, et on le signale.
 
 Une source `membre-retire` ou `membre-parti` n'est plus tirée. Elle ne redevient `suivie`
@@ -103,8 +113,8 @@ unique élément.
 **b. Clé de version, pour chaque fichier.** On prend dans l'ordre le premier élément disponible :
 
 1. `modified` et `size`, tels que `solid_list_container` les donne pour chaque fichier.
-   C'est le moyen le moins coûteux : aucune lecture de plus, donc aucun reçu de plus dans le
-   journal du membre ;
+   C'est le moyen le moins coûteux : aucune lecture de plus, donc aucune trace de plus chez le
+   membre ;
 2. si le listing donne `null` : lire le fichier et prendre l'`etag` du bloc
    `[metadata, not file content]` que renvoie `solid_read_resource`. **Ce bloc ne fait
    jamais partie du fichier** : on ne le recopie pas dans l'instantané ;
@@ -133,7 +143,7 @@ instantané (étape d).
 
 Chemin : `depots/<membre>/<fichier-slug>/<AAAA-MM-JJTHHMM>/`
 
-- `<membre>` : le `foaf:nick` du membre dans `membres.ttl`. Il est fixé à l'acceptation et
+- `<membre>` : le `foaf:nick` du membre dans le roster. Il est fixé à l'acceptation et
   **ne change plus une fois qu'il a servi dans `depots/`** : le changer couperait
   l'historique des versions en deux. À défaut, on prend le premier segment du chemin du pod
   source, **signalé dans le rapport**. Ce n'est qu'une étiquette : on n'en déduit rien
@@ -175,10 +185,10 @@ texte est un index, pas un instantané (ADR 001).
 | 404 sur la source | `source-disparue`, avec la date | ils restent |
 | un fichier ne figure plus dans le conteneur | `retire-a-la-source` pour ce fichier | ils restent |
 | (étape 3) membre retiré du roster, ou parti | `membre-retire` / `membre-parti`, avec la date | ils restent |
-| (étape 2, décision humaine) source de phase 0 remplacée | `remplacee` et `hs:remplaceePar` | ils restent |
+| (étape 2, confirmation humaine) source de phase 0 remplacée | `remplacee` et `hs:remplaceePar` | ils restent |
 
 Une source qui n'est plus `suivie` n'est plus tirée. Elle ne redevient `suivie` qu'avec une
-nouvelle annonce (ou, pour `remplacee`, une nouvelle décision en séance).
+nouvelle annonce (ou, pour `remplacee`, une nouvelle confirmation en séance).
 
 ### 6. Rapport de fin
 
@@ -189,13 +199,17 @@ Toujours produire le rapport, même quand il n'y a rien de nouveau :
 - les fichiers inchangés : leur nombre ;
 - les statuts changés : accès retiré, source disparue, retiré à la source, membre retiré ou
   parti, binaire en attente ;
-- les anomalies : clé absente, instantané interrompu, membre sans nom court ;
-- à décider par une personne : les sources de phase 0 peut-être remplacées par une annonce.
+- les anomalies : clé absente, instantané interrompu, membre sans nom court, nom court sans
+  membre ;
+- à confirmer par une personne : les sources de phase 0 peut-être remplacées par une annonce.
 
 Enchaîner ensuite `procedure-confrontation.md` sur les instantanés créés. Un instantané est
 « en attente de confrontation » tant qu'aucun compte-rendu de `confrontations/` ne cite son chemin.
 
 ## Annexe A — modèle de `provenance.ttl`
+
+Remplacer `<AGENT-COMMUN>` par `hs:agent` de `config.ttl`. Le préfixe `hs:` est le vocabulaire
+commun provisoire, le même pour tous les collectifs : on ne le remplace pas.
 
 ```turtle
 @prefix prov:    <http://www.w3.org/ns/prov#> .
@@ -207,7 +221,7 @@ Enchaîner ensuite `procedure-confrontation.md` sur les instantanés créés. Un
     prov:wasAttributedTo  <WEBID-DU-MEMBRE> ;
     prov:generatedAtTime  "AAAA-MM-JJTHH:MM:SSZ"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
     prov:wasGeneratedBy   [ a prov:Activity ;
-                            prov:wasAssociatedWith <https://pod.nicolasdb.eu/hyperscope/agents/agent#me> ;
+                            prov:wasAssociatedWith <AGENT-COMMUN> ;
                             hs:via "claude.ai session" ] ;        # plus tard : "hermes"
     hs:fichier            <NOM-D-ORIGINE-ENCODE> ;                 # IRI relatif, jamais un littéral
     hs:cleSource          "ETAG-OU-MODIFIED+TAILLE" ;
@@ -219,13 +233,8 @@ encodé pour une URL (`<24.12.27%20Synth%C3%A8se%20r%C3%A9union_jason_Nico.md>`)
 contre `provenance.ttl`, donc il désigne le fichier de l'instantané, qu'on peut suivre ; le
 nom d'origine se lit en décodant son dernier segment. Ce n'est jamais un littéral
 (`"24.12.27 Synthèse…"`). Dans `sources.ttl`, `hs:fichier` porte l'adresse absolue du fichier
-**chez le membre** : même prédicat, autre objet, ne pas confondre les deux.
-
-Les instantanés du 2026-09-25T0942 et T1215 portent un `hs:fichier` littéral, écrit avant cette
-règle. On ne les réécrit pas (règle 2) ; un lecteur accepte les deux formes.
-
-`hs:` est un espace de noms provisoire. On le garde tel quel jusqu'à ce qu'un vocabulaire
-commun soit décidé ; le renommer plus tard est une passe mécanique.
+**chez le membre** : même prédicat, autre objet, ne pas confondre les deux. Un lecteur accepte
+aussi la forme littérale, qu'on peut trouver sur d'anciens instantanés.
 
 ## Annexe B — modèle de `depots/sources.ttl`
 
@@ -233,17 +242,17 @@ commun soit décidé ; le renommer plus tard est une passe mécanique.
 @prefix hs:      <https://pod.nicolasdb.eu/hyperscope/vocab#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-<#source-nicolas-output>
-    hs:source      <https://pod.nicolasdb.eu/hyperscope_ndb/output2/hyperscope/> ;
-    hs:membre      <https://pod.nicolasdb.eu/hyperscope_ndb/profile/card#me> ;
-    hs:statut      "suivie" ;                    # suivie | acces-retire | source-disparue | membre-retire | membre-parti
+<#source-<nick>-output>
+    hs:source      <URL-DU-DOSSIER-PARTAGE-DU-MEMBRE> ;
+    hs:membre      <WEBID-DU-MEMBRE> ;
+    hs:statut      "suivie" ;                    # suivie | acces-retire | source-disparue | membre-retire | membre-parti | remplacee
     hs:declareePar "session" ;                   # ou hs:annonce <inbox/…>
-    dcterms:created "2026-09-24" ;
+    dcterms:created "AAAA-MM-JJ" ;
     hs:element [
-        hs:fichier         <https://pod.nicolasdb.eu/hyperscope_ndb/output2/hyperscope/24.12.27%20Synth%C3%A8se%20r%C3%A9union_jason_Nico.md> ;
+        hs:fichier         <URL-ABSOLUE-DU-FICHIER-CHEZ-LE-MEMBRE> ;
         hs:statut          "tire" ;              # tire | binaire-en-attente | retire-a-la-source | non-tire-via-pull
         hs:derniereCle     "…" ;
-        hs:dernierInstantane <24-12-27-synthese-reunion-jason-nico/AAAA-MM-JJTHHMM/> ;
+        hs:dernierInstantane <<membre>/<fichier-slug>/AAAA-MM-JJTHHMM/> ;
     ] .
 
 # Annonces déjà traitées, pour ne jamais les retraiter
@@ -252,7 +261,7 @@ commun soit décidé ; le renommer plus tard est une passe mécanique.
 
 ## Annexe C — l'annonce, côté membre
 
-Le backoffice la dépose dans `hyperscope/inbox/` quand le membre clique « Share the folder »,
+Le backoffice la dépose dans l'inbox du collectif quand le membre clique « Share the folder »,
 juste après avoir donné à l'agent commun le droit de lecture sur ce dossier. Un membre ou son
 agent peut aussi l'envoyer à la main, sous la même forme :
 
@@ -262,8 +271,8 @@ agent peut aussi l'envoyer à la main, sous la même forme :
 
 <> a as:Announce ;
    as:actor     <WEBID-DU-MEMBRE> ;
-   as:object    <https://pod.nicolasdb.eu/<son-pod>/output2/hyperscope/> ;
-   as:target    <https://pod.nicolasdb.eu/hyperscope/config.ttl#hyperscope> ;
+   as:object    <URL-DU-DOSSIER-PARTAGE-DU-MEMBRE> ;
+   as:target    <IRI-DU-COLLECTIF> ;
    as:published "AAAA-MM-JJTHH:MM:SSZ"^^xsd:dateTime .
 ```
 
@@ -274,13 +283,3 @@ un corps posté : l'activité est le sujet qui porte `as:actor`.
 Une seule annonce suffit pour un conteneur : tout fichier ajouté ensuite est tiré au pull
 suivant. L'onboarding doit le dire clairement : **déposer un fichier dans ce dossier, c'est le
 publier au collectif.**
-
-## Le dépôt de test du 2026-09-24
-
-(Historique : la source s'appelait alors `output2hyperscope/`, avant le passage à
-`output2/hyperscope/`.)
-
-`depots/24.12.27 Synthèse réunion_jason_Nico.md` a été copié à plat, avant cette procédure. On ne
-le déplace pas et on ne le supprime pas (règle 2). Le premier pull fait selon cette procédure
-créera l'instantané conforme à côté. Le fichier à plat reste comme témoin du test, et sa
-confrontation existante reste valable pour lui.

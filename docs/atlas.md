@@ -36,8 +36,9 @@ provider never reaches into an app's data semantics.
 
 | Repo | Owns |
 |---|---|
-| `solid-provider` | CSS config and its identity-page overlay, oxigraph, qdrant, mcp-connector, compose, VPS infra. The product is a humane, fully compliant Solid provider. |
-| `solid-kit` | The app scaffold and shared code, the design system, the deploy pattern, this atlas, the ADRs. |
+| `solid-provider` | Its CSS instance (a pinned `solid-css-overlay` image + its skin and words, ADR 009), oxigraph, qdrant, mcp-connector, compose, VPS infra. The product is a humane, fully compliant Solid provider. |
+| `solid-kit` | The app scaffold and shared code, the design system and its skin audit, the deploy pattern, this atlas, the ADRs. |
+| `solid-css-overlay` | The CSS image every instance runs: stock CSS + the identity pages + the default skin + a secure config, pods as subdomains (ADR 009, amended); the MCP connector's image; the instance template and the `css-instance` skill. |
 | `solid-backoffice` | Account, WebID and pod management; permissions in plain language; the onboarding path from "why does this exist" to a working account; the membership handshake (ADR 006). Replaces the frozen `pocpod0/backoffice/`. |
 | `valisette` | Triage app. |
 | `solid-sport-tracker` | Session tracker with a sequence timer. |
@@ -76,6 +77,16 @@ These live in [`adr/`](adr/) and apply across repos:
 - [007 — Reads revalidate; a copy is never trusted](adr/007-reads-revalidate-never-trust-a-copy.md):
   independent reads start together, a screen draws from the last load and
   reads behind it, display reads send `If-None-Match`. Memory only.
+- [008 — Light by default](adr/008-light-by-default.md): dark and high
+  contrast are a choice the person makes, never the OS's dark setting.
+- [009 — A CSS instance is a skin over a stock server](adr/009-css-instance-is-a-skin-over-stock.md):
+  CSS stays stock; the overlay ships as an image (`solid-css-overlay`), pods
+  are subdomains on new instances, and an instance owns only its skin and its
+  words.
 
 The agent's side of 006 is written as [procedures](procedures/README.md):
 pull and confrontation, copied and adapted by each collective.
+What a collective's pod holds, and which part comes from this repo
+(procedures, [`guide/`](../guide/), the [`config.ttl` template](../templates/collective/config.ttl)):
+[creating a collective](collectives/create-a-collective.md). The generic
+agent skill that reads them: [`skills/collectif/`](../skills/collectif/SKILL.md).

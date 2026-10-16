@@ -27,6 +27,11 @@ Three tiers, and the middle one is what to build.
 Identity and storage both at `pod.example.org/user/…`. Fine to start with. The
 lock-in must be named honestly during onboarding rather than discovered later.
 
+On instances started from the `solid-css-overlay` image (2026-10-14 on), the
+same tier has the pod as a subdomain, `user.pod.example.org/…`
+(ADR 009, amended). The tier, the lock-in and tier 1's answer are unchanged:
+it is still the provider's domain.
+
 ### Tier 1 — bring your own WebID (build this)
 
 The WebID is one small RDF document. Host it at `my.domain/profile/card#me`,

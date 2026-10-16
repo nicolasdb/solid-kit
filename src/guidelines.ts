@@ -35,6 +35,11 @@ import {
   type Checkpoint,
 } from "./ui/patterns";
 import { announce, focusView } from "./ui/a11y";
+import { renderMarkdown } from "./ui/markdown";
+import { renderThemeSwitch, wireThemeSwitch } from "./ui/theme";
+
+const PROSE_SAMPLE = `---\ntitre: Un compte-rendu\nsujets: [communauté, stigmergie]\n---\n# Titre\n\nUn paragraphe avec **du gras**, du \`code\` et [un lien](https://example.org).\n\n- un\n- deux\n\n> Une citation.\n`;
+
 
 const root = document.querySelector<HTMLDivElement>("#guidelines")!;
 
@@ -345,6 +350,38 @@ function render(): void {
         </div>`
       )}
 
+      ${section(
+        "theme",
+        "Choosing a theme",
+        `Light is the default for everyone, whatever the operating system
+         prefers. Dark and High contrast are a choice the person makes, and the
+         choice is remembered.`,
+        demo(
+          "renderThemeSwitch / wireThemeSwitch",
+          renderThemeSwitch(),
+          `Three words, not icons: a sun and a moon say nothing about high
+           contrast. The stored choice is stamped before first paint by a script
+           in each HTML entry, so a dark choice never flashes light. The one OS
+           signal followed is <code>prefers-contrast: more</code>, and only until
+           a choice is made. Why: <code>docs/adr/008-light-by-default.md</code>.`
+        )
+      )}
+
+      ${section(
+        "prose",
+        "Showing a document from a pod",
+        `Markdown is rendered by renderMarkdown and shown in a .prose element,
+         in an app and on the pod's public page alike, so a file reads the same
+         signed in or not. A YAML header becomes a list of fields.`,
+        demo(
+          "renderMarkdown + .prose",
+          `<div class="prose">${renderMarkdown(PROSE_SAMPLE)}</div>`,
+          `Output is sanitized: whoever can write the file can put anything in
+           it. Without the header handling, <code>---</code> … <code>---</code>
+           renders as a rule and one large heading holding every field.`
+        )
+      )}
+
       <footer class="sg-footer meta">
         <p><a href="/">← Back to the app</a> · <a href="/styleguide.html">Design system</a></p>
         <p>
@@ -395,3 +432,5 @@ function wire(): void {
 }
 
 render();
+// Wired once, on the container, like every screen in the kit.
+wireThemeSwitch(root);
