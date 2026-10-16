@@ -84,9 +84,9 @@ These live in [`adr/`](adr/) and apply across repos:
   are subdomains on new instances, and an instance owns only its skin and its
   words.
 
-The agent's side of 006 is written as [procedures](procedures/README.md):
+The agent's side of 006 is written as [procedures](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/procedures/README.md), beside the connector in solid-css-overlay:
 pull and confrontation, copied and adapted by each collective.
 What a collective's pod holds, and which part comes from this repo
 (procedures, [`guide/`](../guide/), the [`config.ttl` template](../templates/collective/config.ttl)):
 [creating a collective](collectives/create-a-collective.md). The generic
-agent skill that reads them: [`skills/collectif/`](../skills/collectif/SKILL.md).
+agent skill that reads them: [`collectif`](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/skills/collectif/SKILL.md), there too.

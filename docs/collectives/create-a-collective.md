@@ -10,11 +10,11 @@ repeated here.
 The aim: **the same instructions serve every member of every collective.**
 Two layers carry it:
 
-- a generic **skill** ([`skills/collectif/`](../../skills/collectif/SKILL.md))
+- a generic **skill** ([`collectif`](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/skills/collectif/SKILL.md), in solid-css-overlay)
   holding the invariants and resolving the context (who am I, which
   collective, which role);
 - **procedures** on each collective's pod, read at every session, changed
-  only by ceremony ([procedures](../procedures/README.md)).
+  only by ceremony ([procedures](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/procedures/README.md)).
 
 The skill finds everything through `config.ttl`; nothing on the pod is
 reached by a path written into a text.
@@ -29,7 +29,7 @@ At the root of the collective's pod:
 | `membres.ttl` (`hs:roster`) | empty at creation | members + agent read; written by the backoffice (owner) |
 | `inbox/` (`ldp:inbox`) | created empty | any signed-in agent appends; the common agent reads |
 | `agents/agent` | the common agent's profile | public |
-| `principles/procedure-*.md` (`hs:procedures`) | **copied from** [`docs/procedures/`](../procedures/) (generic) | members + agent read; owner writes, by ceremony |
+| `principles/procedure-*.md` (`hs:procedures`) | **copied from** [`mcp-connector/procedures/`](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/procedures/) in solid-css-overlay (generic) | members + agent read; owner writes, by ceremony |
 | `principles/cultivate.md` (or equivalent) | **local**: the collective's principles | same |
 | `guide/` (`hs:guide`) | **copied from** [`guide/`](../../guide/) (generic) | `guide/faq.md` public; the rest members |
 | `depots/`, `confrontations/` | created by the common agent | agent edits; members read |

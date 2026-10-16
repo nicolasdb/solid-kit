@@ -392,7 +392,7 @@ What the manual run did *not* yet do, and the next run must do:
   procedure; the pull needs one too, and that procedure is also the
   specification for the Hermes task.
 
-Both procedures now live in [`docs/procedures/`](../procedures/README.md).
+The procedures now live beside the connector, in solid-css-overlay's [`mcp-connector/procedures/`](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/procedures/README.md) (moved from this repo on 2026-10-16).
 
 **2026-09-24, later that day: change detection.** After the connector began
 returning version metadata (pocpod0 `de537b9`), the pull ran twice in a row.
@@ -423,7 +423,7 @@ pull and confrontation brought it back into the graph linked to its three
 What the run did *not* show: two members. All documents have one author, so
 the cross-member queries return nothing; stigmergy between people is still
 untested. Defects and the procedure changes it suggests are in the
-[procedures README](../procedures/README.md#proposed-not-adopted).
+[procedures README](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/procedures/README.md#proposed-not-adopted).
 
 ## Open, and to verify live before relying on it
 
@@ -447,4 +447,4 @@ untested. Defects and the procedure changes it suggests are in the
   `https://w3id.org/solid-backoffice/vocab#`, and a namespace per
   collective for its own terms. Until the migration runs, the procedures
   say never to replace it
-  ([procedures README](../procedures/README.md#open)).
+  ([procedures README](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/procedures/README.md#open)).
