@@ -86,7 +86,9 @@ These live in [`adr/`](adr/) and apply across repos:
 
 The agent's side of 006 is written as [procedures](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/procedures/README.md), beside the connector in solid-css-overlay:
 pull and confrontation, copied and adapted by each collective.
-What a collective's pod holds, and which part comes from this repo
-(procedures, [`guide/`](../guide/), the [`config.ttl` template](../templates/collective/config.ttl)):
-[creating a collective](collectives/create-a-collective.md). The generic
+What a collective's pod holds, and what it copies there (the `config.ttl`
+and `membres.ttl` templates, the members' `guide/`): solid-backoffice,
+[the pod tree](https://github.com/nicolasdb/solid-backoffice/blob/dev/docs/reference/collective-files.md#the-pod-tree)
+and [`templates/collective/`](https://github.com/nicolasdb/solid-backoffice/blob/dev/templates/collective/README.md),
+since they follow its `config.ttl`. The generic
 agent skill that reads them: [`collectif`](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/skills/collectif/SKILL.md), there too.
