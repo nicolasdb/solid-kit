@@ -427,6 +427,45 @@ to backfill older snapshots. Extractors run in the connector's image:
 `<original> hs:texte <original.texte.md>` and
 `<original.texte.md> prov:wasDerivedFrom <original>`.
 
+**No size cap on the pull.** Code streams the bytes from GET to PUT; no
+model holds them. The limit that remains is the confronter's reading (see
+below), and the space on the common pod, which is the collective's own
+choice, not this protocol's.
+
+**An extraction says how it went.** It records, in `status.ttl` (§3), the
+tool and its version, its exit status and warnings, and what can be
+measured (pages in the PDF against pages with text, characters, `data:`
+URIs left). Three outcomes:
+
+- `texte-complet`;
+- `texte-partiel`, with what is missing (pages 12 to 40 have no text, a
+  table pandoc could not read). Incomplete is not always detectable; these
+  measures catch the common cases, and the confronter, reading the text,
+  can mark it partial too;
+- `texte-echec`: no usable text.
+
+**Confrontation starts when the pull is done, never earlier.** The pull
+runs to its end (snapshots, then derived text, then status), and only then
+calls the confronter, with the list of snapshots it made. The confronter
+takes a snapshot whose status is `texte-complet`, `texte-partiel` or an
+image; it confronts a partial text and says so in its report, as a 🟧 on
+the reading itself, with what was missing. It never confronts
+`texte-echec` or a snapshot without a status: those appear in the pull
+report for the admin. The extraction tool is there for those cases, and
+for an "accident" (a pull stopped before its extraction): run again on one
+snapshot, or on all older ones once an extractor is fixed. The original is
+never touched; the derived text is rebuilt (ADR 001).
+
+**A confrontation names the text it read**: the derived text's address and
+its hash. A new extraction that changes the text leaves earlier
+confrontations as they were, marked as made on an earlier reading, and puts
+the snapshot back among those waiting.
+
+**A long text is read in parts.** A confronter has a context, so a text
+larger than it can read at once is confronted part by part (by heading, or
+by page), and the report covers the whole and says it was read in parts.
+Never truncated silently.
+
 **What the graph points at, and who wrote it.** The subject of a
 confrontation's sidecar is the **original in its snapshot** (the `.docx`),
 not the derived text: the original is what was shared, cited and
@@ -450,9 +489,8 @@ principles needs reading. Steps, order and what is deferred:
 solid-css-overlay
 [`mcp-connector/docs/collective-pipeline.md`](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/docs/collective-pipeline.md).
 
-Not built. Open: the size cap per file and on the text sent to a
-confronter; how a confronter is told something is pending (a Hermes cron
-checking cheaply, or a call from the connector).
+Not built. Open: the size of a part when a long text is read in parts, set
+from the first real backlog.
 
 ## Consequences
 
