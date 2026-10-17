@@ -9,10 +9,12 @@
  *      light and dark — and AAA 7:1 in the high-contrast theme, whose borders
  *      and lines must also reach 3:1;
  *   2. every color token defined for light is also defined for dark and for
- *      high contrast (both the [data-theme] block and the prefers-contrast
- *      one) — a token defined in one mode only renders one theme's text on the
- *      other theme's ground — and light stays the default: no
- *      prefers-color-scheme: dark block (ADR 008);
+ *      high contrast — a token defined in one mode only renders one theme's
+ *      text on the other theme's ground — and light stays the default: no
+ *      prefers-color-scheme: dark block (ADR 008). theme.css has no
+ *      prefers-contrast copy of the contrast theme either: the first-paint
+ *      script resolves "same as this device" (src/ui/theme.ts). A skin may
+ *      still carry one; if it does, it must be complete and agree;
  *   3. :focus-visible and prefers-reduced-motion exist at all.
  *
  * No dependencies: it reads the CSS as text on purpose, so it cannot drift
@@ -199,8 +201,15 @@ function auditTokens(css, file, opts = {}) {
     failures.push('Could not parse the :root[data-theme="dark"] block.');
   if (!Object.keys(contrastAttr).length)
     failures.push('Could not parse the :root[data-theme="contrast"] block.');
-  if (!Object.keys(contrastMedia).length)
+  const hasContrastMedia = /@media\s*\(prefers-contrast:\s*more\)/.test(css);
+  if (hasContrastMedia && !opts.skin) {
+    failures.push(
+      `${file} has a prefers-contrast: more block — the first-paint script resolves ` +
+        `"same as this device" to [data-theme="contrast"], so each theme's values live once (ADR 008).`
+    );
+  } else if (hasContrastMedia && !Object.keys(contrastMedia).length) {
     failures.push("Could not parse the prefers-contrast: more block.");
+  }
 
   /* ── 1. contrast ──────────────────────────────────────────────────────────── */
 
@@ -236,7 +245,7 @@ function auditTokens(css, file, opts = {}) {
   for (const [label, block] of [
     ['the :root[data-theme="dark"] block', darkAttr],
     ['the :root[data-theme="contrast"] block', contrastAttr],
-    ["the prefers-contrast: more block", contrastMedia],
+    ...(hasContrastMedia ? [["the prefers-contrast: more block", contrastMedia]] : []),
   ]) {
     const missing = lightColors.filter((k) => !(k in block));
     if (missing.length) {

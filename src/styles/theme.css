@@ -9,13 +9,17 @@
 
   Changes from where these values came from:
 
-  1. Light is the default for everyone, and the OS dark setting
-     is NOT followed (ADR 008). Light lives on bare `:root`; dark
-     and contrast exist only behind `[data-theme]`, stamped by the
-     switch in src/ui/theme.ts before first paint. Do not add a
-     `prefers-color-scheme: dark` block — the audit refuses one.
-     The one OS signal honoured is `prefers-contrast: more`, and
-     only while no explicit choice is stamped.
+  1. Light is the default for everyone, and is stamped
+     `data-theme="light"` in each HTML entry (ADR 008, amended).
+     Dark and contrast exist only behind `[data-theme]`. The
+     switch in src/ui/theme.ts cycles Light → Dark → Same as this
+     device, and "same as this device" is resolved in the
+     blocking first-paint script, not here: it reads
+     `prefers-color-scheme` and `prefers-contrast` and stamps
+     dark, contrast or light. So this file has no `@media
+     (prefers-color-scheme)` block and no `prefers-contrast`
+     copy of the contrast theme — each theme's values live once.
+     The audit refuses a `prefers-color-scheme: dark` block.
      A page that ships tokens as a blocking <link> also needs no
      inline `var(--x, #fallback)` — those existed only because
      the backoffice's tokens arrived via JS.
@@ -39,15 +43,20 @@
 
 :root {
   /* ── Type ────────────────────────────────────────────────
-     System stacks so the kit ships with no font dependency.
-     Swapping in a webfont is a per-app decision; if the app is
-     text-heavy, prefer a face designed for legibility (the
-     backoffice defaults to Atkinson Hyperlegible, deliberately
-     making the accessible choice the default rather than an
-     option). Always keep a real fallback stack. */
+     Four roles. Heading and body are system stacks. Display is
+     Newsreader, 400 roman and italic only, never bold: it carries
+     the voice by size, for titles and the pull line, never for
+     running text. Mono is Commit Mono 400 and 700: even widths
+     for meta lines, paths and WebIDs. Both are self-hosted from
+     @fontsource 5.3.0, latin only (src/styles/fonts.css), with
+     real fallbacks while they load. Any other webfont is a
+     per-app choice; if the app is text-heavy, prefer a face
+     designed for legibility and make it the default, not an
+     option. */
+  --font-display: "Newsreader", Georgia, serif;
   --font-heading: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-body:    system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono:    ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  --font-mono:    "Commit Mono", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
 
   --text-display: 2.25rem;
   --text-h1:      1.75rem;
@@ -64,6 +73,16 @@
   --leading-body:    1.6;
   --tracking-label:  0.08em;
   --measure-body:    65ch;
+
+  /* ── Widths ──────────────────────────────────────────────
+     The app column, then the editorial register's frames
+     (src/styles/editorial.css). */
+  --width-app:     40rem;
+  --width-reading: 920px;
+  --width-landing: 80rem;
+  --width-wide:    90rem;
+  --measure-lead:  34em;
+  --measure-prose: 72ch;
 
   /* ── Structure: daylight ─────────────────────────────────── */
   --surface:          #f6f4ef;
@@ -96,11 +115,32 @@
 
   --code-bg: #f0ede4;
 
+  /* ── Knowledge ───────────────────────────────────────────
+     From the portfolio: what a mark says about knowledge (a raw
+     block, a convergence, a pattern, time, the unexplored, a
+     fresh capture). Dots, bars and marks in the knowledge views
+     only, never UI state. Convergence sits close to --warn and
+     pattern close to --danger: keep them off screens that show
+     either. --know-frontier is about 2:1: never text.
+     Defined for light and dark only. High contrast is drawn on
+     Daylight's paper and keeps these light values, inherited
+     from this block. */
+  --know-block:       oklch(0.35 0.04 90);
+  --know-convergence: oklch(0.52 0.14 75);
+  --know-pattern:     oklch(0.48 0.18 25);
+  --know-temporal:    oklch(0.48 0.10 240);
+  --know-frontier:    oklch(0.75 0.01 260);
+  --know-fresh:       oklch(0.42 0.14 145);
+
+  /* A meter's fill (.meter). Sage by default; an app may set it to
+     a knowledge colour. Resolved per theme, as --accent is. */
+  --meter-fill: var(--accent);
+
   /* Form controls and scrollbars follow the chosen theme, not the OS. */
   color-scheme: light;
 }
 
-/* Dark: an explicit choice only (ADR 008). */
+/* Dark: chosen, or "same as this device" on a dark system (ADR 008). */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
@@ -129,11 +169,19 @@
   --danger-soft: rgba(224, 130, 122, 0.13);
 
   --code-bg: #0d0f0b;
+
+  --know-block:       oklch(0.95 0.02 90);
+  --know-convergence: oklch(0.75 0.15 75);
+  --know-pattern:     oklch(0.65 0.25 25);
+  --know-temporal:    oklch(0.70 0.12 240);
+  --know-frontier:    oklch(0.40 0.01 260);
+  --know-fresh:       oklch(0.75 0.18 145);
 }
 
-/* High contrast: an explicit choice, or the OS asking for more
-   contrast while no choice is stamped. Daylight's paper, deeper
-   inks, and lines strong enough to find a control by. */
+/* High contrast: what "same as this device" gives a system that
+   asks for more contrast (`prefers-contrast: more`). It is not
+   in the switch's cycle. Daylight's paper, deeper inks, and
+   lines strong enough to find a control by. */
 :root[data-theme="contrast"] {
   --surface:          #fbfaf7;
   --surface-elevated: #ffffff;
@@ -161,37 +209,6 @@
 
   --code-bg: #efece3;
 }
-
-@media (prefers-contrast: more) {
-  :root:not([data-theme]) {
-    --surface:          #fbfaf7;
-    --surface-elevated: #ffffff;
-    --surface-recessed: #efece3;
-
-    --text-primary:   #1a1814;
-    --text-secondary: #3a362d;
-    --text-tertiary:  #433e33;
-
-    --border:        #7a7466;
-    --border-subtle: #8a8475;
-    --selection:     #c9dccf;
-
-    --accent:          #28493a;
-    --accent-contrast: #ffffff;
-    --accent-soft:     #e3ece6;
-    --accent-line:     #4f7a62;
-
-    --warn:      #6e4210;
-    --warn-soft: #faf3e6;
-    --warn-line: #a8691f;
-
-    --danger:      #7a2018;
-    --danger-soft: #f9ecea;
-
-    --code-bg: #efece3;
-  }
-}
-
 
 /* ══════════════════════════════════════════════════════════
    Components — the handful every app in this family needs.

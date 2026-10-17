@@ -156,16 +156,19 @@ diagnosable.
 ## 9 · The design system, all three themes
 
 **Do:** in a fresh private window with the OS set to dark, open the app. Then
-open `/styleguide.html` and use the Light / Dark / High contrast switch. Reload
-on Dark. Finally turn on the OS "increase contrast" setting in a fresh private
-window and open the app again.
+open `/styleguide.html` and use the Light / Dark / High contrast preview.
+Back in the app, press the theme button: Dark, then Same as this device.
+Reload on Dark. With Same as this device chosen, switch the OS between light
+and dark without reloading. Finally turn on the OS "increase contrast" setting.
 
-**Expect:** the app opens **light** despite the dark OS. Every contrast badge
-reads AA (AAA in High contrast). Nothing unreadable in any theme — particularly
-no token that renders one theme's text on another theme's ground, which is what
-a slot defined in only one mode looks like. The reload stays dark with no flash
-of light. With increased contrast and no stored choice, the app opens in High
-contrast, and choosing Light still wins.
+**Expect:** the app opens **light** despite the dark OS, with no flash of
+dark. Every contrast badge reads AA (AAA in High contrast). Nothing unreadable
+in any theme — particularly no token that renders one theme's text on another
+theme's ground, which is what a slot defined in only one mode looks like. The
+button's label follows each press ("Theme: same as this device. Change it").
+The reload stays dark with no flash of light. Same as this device follows the
+OS live, both ways, and gives High contrast once contrast is increased. The
+display serif and Commit Mono load (titles in Newsreader, never bold).
 
 **Observed:**
 

@@ -8,15 +8,17 @@
  * Replace `renderHome` with the real thing. Everything above it is the part
  * worth keeping unchanged between apps.
  */
+import "./styles/fonts.css";
 import "./styles/core.css";
 import "./styles/theme.css";
 import "./styles/patterns.css";
+import "./styles/editorial.css";
 import { completeLogin, getSession, loginWithIdentifier, logout } from "./lib/auth";
 import { describePodError, getPrimaryPodUrl, isAuthError } from "./lib/pod";
 import { APP_NAME, DEFAULT_IDENTIFIER } from "./config";
 import { focusView, trackInputModality } from "./ui/a11y";
 import { renderError, renderPending } from "./ui/patterns";
-import { renderThemeSwitch, wireThemeSwitch } from "./ui/theme";
+import { renderThemeButton, wireThemeButton } from "./ui/theme";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -28,15 +30,15 @@ function esc(value: string): string {
 }
 
 /**
- * The theme switch, at the foot of every screen a person can stop at — Light
- * by default, Dark and High contrast by choice (ADR 008). Part of the shell,
+ * The theme button, at the foot of every screen a person can stop at — Light
+ * by default, then Dark, then the device's own setting (ADR 008). Part of the shell,
  * not of `renderHome`, so an app keeps it when the placeholder is replaced.
  */
 function themeFooter(): string {
   return `
     <footer class="stack">
       <hr />
-      ${renderThemeSwitch()}
+      <div>${renderThemeButton()}</div>
     </footer>`;
 }
 
@@ -176,7 +178,7 @@ async function renderHome(webId: string, podUrl: string): Promise<void> {
           <dd><code>${esc(podUrl)}</code></dd>
         </div>
       </dl>
-      <p class="meta">
+      <p class="hint">
         Session id <code>${esc(getSession().info.sessionId)}</code> — must be
         unique per app, see src/config.ts.
       </p>
@@ -187,17 +189,17 @@ async function renderHome(webId: string, podUrl: string): Promise<void> {
         <p class="label-mono">Kit reference</p>
         <p>
           <a href="/styleguide.html">Design system</a>
-          <span class="meta">
+          <span class="hint">
             — tokens, type scale and components, with live contrast ratios.
           </span>
         </p>
         <p>
           <a href="/guidelines.html">UX guidelines</a>
-          <span class="meta">
+          <span class="hint">
             — the interaction patterns, running, and how their limits are set.
           </span>
         </p>
-        <p class="meta">This block goes when you replace <code>renderHome</code>.</p>
+        <p class="hint">This block goes when you replace <code>renderHome</code>.</p>
       </nav>
       ${themeFooter()}
     </main>
@@ -212,5 +214,5 @@ async function renderHome(webId: string, podUrl: string): Promise<void> {
 
 trackInputModality();
 // Once, on the container: every screen replaces its contents, switch included.
-wireThemeSwitch(app);
+wireThemeButton(app);
 main();

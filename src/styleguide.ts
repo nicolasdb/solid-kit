@@ -9,11 +9,13 @@
  * The contrast figures are computed the same way `scripts/audit.mjs` computes
  * them, so what the audit asserts in CI is what you can check by eye here.
  */
+import "./styles/fonts.css";
 import "./styles/core.css";
 import "./styles/theme.css";
 import "./styles/patterns.css";
+import "./styles/editorial.css";
 import "./styles/styleguide.css";
-import { currentTheme, renderThemeSwitch, wireThemeSwitch } from "./ui/theme";
+import { THEMES, currentTheme, renderThemeButton, wireThemeButton, type Theme } from "./ui/theme";
 
 const root = document.querySelector<HTMLDivElement>("#styleguide")!;
 
@@ -87,6 +89,17 @@ const IDENTITY_SLOTS = [
   "--code-bg",
 ];
 
+/** Marks in the knowledge views only: never text, never UI state. */
+const KNOW_SLOTS = [
+  "--know-block",
+  "--know-convergence",
+  "--know-pattern",
+  "--know-temporal",
+  "--know-frontier",
+  "--know-fresh",
+  "--meter-fill",
+];
+
 const TYPE_ROLES = [
   ["--text-display", "Display"],
   ["--text-h1", "Heading 1"],
@@ -100,7 +113,7 @@ const TYPE_ROLES = [
 ];
 
 const SPACE_STEPS = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20];
-const RADII = ["--radius-none", "--radius-sm", "--radius-md", "--radius-lg"];
+const RADII = ["--radius-none", "--radius-sm", "--radius-md", "--radius-lg", "--radius-mark"];
 
 /**
  * The floor the badges hold a text token to: AA everywhere, AAA in the
@@ -108,6 +121,24 @@ const RADII = ["--radius-none", "--radius-sm", "--radius-md", "--radius-lg"];
  */
 const contrastFloor = (): { min: number; name: string } =>
   currentTheme() === "contrast" ? { min: 7, name: "AAA" } : { min: 4.5, name: "AA" };
+
+const PREVIEW_LABELS: Record<Theme, string> = {
+  light: "Light",
+  dark: "Dark",
+  contrast: "High contrast",
+};
+
+/** The three themes, as pressed-state buttons: this page's preview only. */
+function renderPreview(current: Theme = currentTheme()): string {
+  return `
+    <div class="sg-preview" role="group" aria-label="Preview a theme">
+      ${THEMES.map(
+        (theme) => `<button type="button" class="ghost small" data-theme-preview="${theme}"
+          aria-pressed="${theme === current}">${PREVIEW_LABELS[theme]}</button>`
+      ).join("")}
+      ${renderThemeButton()}
+    </div>`;
+}
 
 function swatchRow(token: string, against?: string): string {
   const value = readToken(token);
@@ -160,8 +191,8 @@ function render(): void {
           </p>
         </div>
         <div class="sg-themes">
-          <span class="label-mono">Theme</span>
-          ${renderThemeSwitch()}
+          <span class="label-mono">Preview</span>
+          ${renderPreview()}
         </div>
       </header>
 
@@ -177,6 +208,7 @@ function render(): void {
         ${colorTable("Text on --surface-elevated", TEXT_SLOTS, "--surface-elevated")}
         ${colorTable("Lines", LINE_SLOTS)}
         ${colorTable("Identity", IDENTITY_SLOTS)}
+        ${colorTable("Knowledge (marks only)", KNOW_SLOTS)}
       </section>
 
       <section>
@@ -238,7 +270,7 @@ function render(): void {
           <button class="ghost">Ghost</button>
           <button disabled>Disabled</button>
         </div>
-        <p class="meta">
+        <p class="hint">
           Tab to a button to check the focus ring — one primary action per
           screen is the rule these are built for.
         </p>
@@ -248,6 +280,10 @@ function render(): void {
           <div class="field">
             <label for="sg-input">Pod or WebID</label>
             <input id="sg-input" type="url" value="https://pod.nicolasdb.eu/" />
+            <p class="hint">
+              Your pod's address, or your WebID if you don't know which provider
+              hosts it.
+            </p>
           </div>
           <div><button type="submit">Sign in</button></div>
         </form>
@@ -257,7 +293,7 @@ function render(): void {
           Access refused (401) on https://pod.example/private/ — the session has
           expired, or this pod does not belong to your account.
         </p>
-        <p class="meta">
+        <p class="hint">
           Errors say what happened and which resource refused. Never a bare
           status code, never the server's error graph.
         </p>
@@ -268,8 +304,30 @@ function render(): void {
           <button class="ghost">Sign out</button>
         </div>
         <p class="label-mono">label-mono — section labels</p>
-        <p class="meta">meta — timestamps and quiet annotation</p>
+        <p class="meta">meta — timestamps, WebIDs and paths</p>
+        <p class="hint">hint — help under a field and the quiet line under a form: prose, so never mono.</p>
         <p>Inline <code>code</code> inside running text.</p>
+
+        <h3>Editorial register</h3>
+        <p class="hint">
+          <code>editorial.css</code>: landings and reading pages. The serif is for
+          titles and the pull line only, at 400, never bold.
+        </p>
+        <div class="stack">
+          <p class="eyebrow">A backoffice for your pod</p>
+          <h2 class="display">Your pod, and the collectives you belong to.</h2>
+          <p class="pull">Who you are, who may read what, and who you work with.</p>
+          <span class="brand"><span class="brand-mark" aria-hidden="true"></span>solid-kit</span>
+          <ol class="how-steps">
+            <li><span class="how-number">01</span><h3 class="display how-title">Your pod</h3><p class="lead">An address of your own.</p></li>
+            <li><span class="how-number">02</span><h3 class="display how-title">Join a collective</h3><p class="lead">One message asks.</p></li>
+          </ol>
+          <div class="meter" role="meter" aria-label="Confidence" aria-valuenow="64"
+               aria-valuemin="0" aria-valuemax="100" style="max-width: 20rem">
+            <div class="meter-track"><div class="meter-fill" style="--value: 64%"></div></div>
+            <span class="meter-value">64%</span>
+          </div>
+        </div>
       </section>
 
       <footer class="sg-footer meta">
@@ -285,10 +343,18 @@ function render(): void {
 
 /*
  * Exercising all three themes is the only way to catch a token defined in one
- * mode but not another. Contrast figures depend on the active theme, so a
- * choice re-renders the page; the switch itself is wired once, by delegation
- * on `root` (see wireThemeSwitch), because render() replaces its buttons.
+ * mode but not another. The app's own switch cannot do it: High contrast is
+ * not in its cycle (it comes from the device). So this page has a preview of
+ * its own, which stamps a theme on the page and stores nothing, beside the
+ * real button (an app keeps the button, never the preview). Contrast figures
+ * depend on the active theme, so either one re-renders the page; both are
+ * wired once, by delegation on `root`, because render() replaces their buttons.
  */
 render();
-wireThemeSwitch(root, render);
-
+wireThemeButton(root, () => render());
+root.addEventListener("click", (event) => {
+  const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-theme-preview]");
+  if (!button) return;
+  document.documentElement.dataset.theme = button.dataset.themePreview;
+  render();
+});

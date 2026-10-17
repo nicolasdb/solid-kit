@@ -52,17 +52,57 @@ Then, in order:
 | `src/lib/conditional.ts` | ETag reads and `If-Match` writes for documents something else also writes. One retry on a 412, then report the conflict. |
 | `src/lib/draft.ts` | `makeDraftStore<T>` — keeps unsaved work in `localStorage` with a TTL, for the window where the browser holds the only copy. |
 | `src/styles/core.css` | Structure: spacing scale, radii, reset, layout primitives, and the slot contract a theme fills. Project-agnostic — don't edit per app. |
-| `src/styles/theme.css` | Identity: the pod design system's daylight/ink palette, light and dark, mapped onto those slots. This is the file to fork for a different look. |
+| `src/styles/theme.css` | Identity: the pod design system's Daylight, Ink and High contrast palettes, the four type roles, the widths and the knowledge colours, mapped onto those slots. This is the file to fork for a different look. |
+| `src/styles/editorial.css` | The editorial register, CSS only: landings (`.display`, `.eyebrow`, `.pull`, `.landing*`, `.how-steps`…) and reading pages (`.reading`, `.entry-list`, `.timeline`, `.meter`…). Also `.hint`, `.brand`, `button.small` and the icon button. |
+| `src/styles/fonts.css` | Newsreader 400 and 400 italic, Commit Mono 400 and 700, self-hosted from `@fontsource` 5.3.0, latin only. |
+| `src/ui/theme.ts` | The theme button: Light → Dark → Same as this device. The first-paint script in each HTML entry is its other half. |
+| `design/` | The Solid Kit design system's `tokens.json` and `bundle.css`, the reference these styles are held to. Exact values: change them there first, then here. |
 | `src/ui/patterns.ts` | The UX patterns as components: concept card, phase rail, comprehension checkpoint, empty state, pending state, undo toast. A limit enforced by a component cannot be violated by accident. |
 | `src/ui/a11y.ts` | `focusView` and `announce` — what keeps a screen change perceivable when the screen is replaced wholesale. |
 | `src/ui/ux.ts` | The UX preferences that are values: chunks per step, options per choice, undo window. Change them here; the tests and the audit follow. |
-| `styleguide.html` | The design system rendered from its own tokens, with measured contrast ratios and a theme switch. Ships in `dist/`. |
+| `styleguide.html` | The design system rendered from its own tokens, with measured contrast ratios, a preview of all three themes and the theme button. Ships in `dist/`. |
 | `guidelines.html` | The UX patterns, running — every example rendered by the function an app calls. Ships in `dist/`. |
 | `scripts/audit.mjs` | The design rules a machine can decide — contrast, token completeness, a11y affordances. |
 | `deploy/`, `Makefile`, `docker-compose.yml` | Build locally, rsync `dist/`, serve from an nginx container behind the shared gateway. |
 
 Not included, on purpose: no demo-mode framework, no ACL/permission helpers, no
 data-format helpers, no vocabulary. See the ADRs.
+
+### The design system, in short
+
+The reference is `design/` (the "Solid Kit" design system): `tokens.json` for
+every value, `bundle.css` for every class. The styles here are held to it
+exactly; nothing is reinterpreted on the way in.
+
+- **Two registers, one palette.** The app register (`core.css`, `theme.css`,
+  `patterns.css`) is one calm column for doing something: system sans, mono
+  labels, at most `--width-app`. The editorial register (`editorial.css`) is
+  for saying what something is (a landing) and holding what someone wrote (a
+  reading page): a display serif, an italic pull line, a ruled eyebrow,
+  sections cut by a hairline on top and never boxed. Load `editorial.css` in
+  the apps that have one; it adds classes, never tokens.
+- **Type.** Four roles. `--font-heading` and `--font-body` are system stacks.
+  `--font-display` is Newsreader, 400 roman and italic only, **never bold**,
+  for `.display` titles, step titles and the `.pull` line, never running text.
+  `--font-mono` is Commit Mono, for meta lines, paths and WebIDs.
+- **Help text is `.hint`, never `.meta`.** `.hint` (body family, `--text-meta`
+  size, `--text-secondary`) is for help under a field and the quiet line under
+  a form. `.meta` is mono, for timestamps, WebIDs and paths: never for a
+  sentence someone has to read. A `<code>` inside a hint keeps the address in
+  mono.
+- **The theme.** Light is the default for everyone, stamped
+  `data-theme="light"` in the HTML. The theme button cycles Light → Dark →
+  Same as this device; Light clears the stored value. "Same as this device" is
+  resolved in each HTML entry's blocking first-paint script, from
+  `prefers-contrast` and `prefers-color-scheme`, and followed while the page
+  is open. High contrast is not in the cycle: a device asking for more
+  contrast gets it. There is no `@media (prefers-color-scheme)` block in any
+  stylesheet ([ADR 008](docs/adr/008-light-by-default.md)).
+- **Flat, square, readable.** No shadows, gradients or backdrop blur. At most
+  4px radius on a rectangle, except `--radius-mark` (6px) on the brand mark.
+  Text clears 4.5:1 on `--surface` and `--surface-elevated` in every theme
+  (7:1 in High contrast). The `--know-*` colours are for dots, bars and marks
+  in the knowledge views, never UI state, and `--know-frontier` never for text.
 
 ### Setting a UX preference
 
@@ -94,7 +134,7 @@ make             # lists the deploy targets
 Three layers, and they cover different things — the automated ones do not cover
 sign-in and must not be read as if they did.
 
-**1. `npm run verify`** — 83 unit tests plus the design audit. The tests cover
+**1. `npm run verify`** — the unit tests plus the design audit. The tests cover
 the logic that carries a "this broke before" comment: the Link-header parse and
 the stop-at-first-match walk, the 412 retry, draft expiry, accent folding, local
 vs UTC dates, and the sign-in error messages. All of it runs with a stubbed
