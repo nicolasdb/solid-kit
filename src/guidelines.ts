@@ -10,9 +10,11 @@
  * docs/ux-principles.md says what we believe and why; this says what the kit
  * actually does, and stays true by construction.
  */
+import "./styles/fonts.css";
 import "./styles/core.css";
 import "./styles/theme.css";
 import "./styles/patterns.css";
+import "./styles/editorial.css";
 import "./styles/guidelines.css";
 import {
   MAX_CHOICES,
@@ -36,7 +38,7 @@ import {
 } from "./ui/patterns";
 import { announce, focusView } from "./ui/a11y";
 import { renderMarkdown } from "./ui/markdown";
-import { renderThemeSwitch, wireThemeSwitch } from "./ui/theme";
+import { renderThemeButton, wireThemeButton } from "./ui/theme";
 
 const PROSE_SAMPLE = `---\ntitre: Un compte-rendu\nsujets: [communauté, stigmergie]\n---\n# Titre\n\nUn paragraphe avec **du gras**, du \`code\` et [un lien](https://example.org).\n\n- un\n- deux\n\n> Une citation.\n`;
 
@@ -123,7 +125,7 @@ function demo(label: string, markup: string, note?: string): string {
     <div class="demo">
       <p class="label-mono">${esc(label)}</p>
       <div class="demo-stage">${markup}</div>
-      ${note ? `<p class="meta">${note}</p>` : ""}
+      ${note ? `<p class="hint">${note}</p>` : ""}
     </div>`;
 }
 
@@ -139,7 +141,7 @@ function render(): void {
           from <code>src/ui/ux.ts</code> — so this page cannot drift from what
           the components actually enforce.
         </p>
-        <p class="meta">
+        <p class="hint">
           Why these principles, and where they came from:
           <code>docs/ux-principles.md</code>.
         </p>
@@ -175,7 +177,7 @@ function render(): void {
             per release in <code>docs/manual-tests.md</code>.</p>
           </li>
         </ol>
-        <p class="meta">
+        <p class="hint">
           To change a preference: edit the constant, run <code>npm test</code>,
           and expect a failure if a component depended on the old value. Do not
           work around a constant inside a component — that is how the tiers stop
@@ -281,7 +283,7 @@ function render(): void {
         <div class="demo">
           <p class="label-mono">renderPending</p>
           <div class="demo-stage">${renderPending("Looking for your pod…")}</div>
-          <p class="meta">
+          <p class="hint">
             <em>Looking</em>, not <em>finding</em> — it may not find it, and a
             status line that assumes success is the same dishonesty as an error
             with no way forward. The indicator travels rather than rotates: a
@@ -295,7 +297,7 @@ function render(): void {
             <button id="demo-pending" class="ghost">Start a slow lookup</button>
             <div id="demo-pending-stage"></div>
           </div>
-          <p class="meta">
+          <p class="hint">
             Nothing appears for the first
             <strong>${PENDING_DELAY_MS}ms</strong> — below that a spinner is a
             glitch, and most warm reads land there. After
@@ -319,7 +321,7 @@ function render(): void {
           <div class="demo-stage">
             <button id="demo-toast">Delete something</button>
           </div>
-          <p class="meta">
+          <p class="hint">
             ${UNDO_WINDOW_MS / 1000} seconds to undo — long enough to notice and
             decide, short enough that the action feels finished. One toast at a
             time: a stack of them is a second thing to manage exactly when
@@ -341,7 +343,7 @@ function render(): void {
             <button id="demo-focus" class="ghost">Move focus to this page's heading</button>
             <button id="demo-announce" class="ghost">Announce a message</button>
           </div>
-          <p class="meta">
+          <p class="hint">
             The shell calls <code>focusView</code> after every render, because a
             rule each screen has to remember is a rule that gets forgotten. Use
             <code>announce</code> for state a sighted person reads off the screen
@@ -354,16 +356,19 @@ function render(): void {
         "theme",
         "Choosing a theme",
         `Light is the default for everyone, whatever the operating system
-         prefers. Dark and High contrast are a choice the person makes, and the
-         choice is remembered.`,
+         prefers. Dark, or the device's own setting, is a choice the person
+         makes, and the choice is remembered.`,
         demo(
-          "renderThemeSwitch / wireThemeSwitch",
-          renderThemeSwitch(),
-          `Three words, not icons: a sun and a moon say nothing about high
-           contrast. The stored choice is stamped before first paint by a script
-           in each HTML entry, so a dark choice never flashes light. The one OS
-           signal followed is <code>prefers-contrast: more</code>, and only until
-           a choice is made. Why: <code>docs/adr/008-light-by-default.md</code>.`
+          "renderThemeButton / wireThemeButton",
+          `<div>${renderThemeButton()}</div>`,
+          `One icon button, for the top bar or a landing's nav. It cycles Light,
+           Dark, Same as this device; its label names the current choice and the
+           action. Light clears the stored value. The choice is applied before
+           first paint by a script in each HTML entry, which also resolves "same
+           as this device" to Dark, High contrast or Light and follows the
+           device while the page is open. High contrast is not in the cycle: it
+           is what a system asking for more contrast gets. Why:
+           <code>docs/adr/008-light-by-default.md</code>.`
         )
       )}
 
@@ -433,4 +438,4 @@ function wire(): void {
 
 render();
 // Wired once, on the container, like every screen in the kit.
-wireThemeSwitch(root);
+wireThemeButton(root);

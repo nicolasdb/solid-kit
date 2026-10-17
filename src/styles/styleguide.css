@@ -40,6 +40,23 @@
   gap: var(--space-2);
 }
 
+/* The styleguide's theme preview (not the app's switch, see styleguide.ts).
+   Pressed is carried by aria-pressed for assistive tech, and by fill AND
+   border on screen, not hue alone. */
+.sg-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sg-preview button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* Tables scroll on their own so the page body never moves sideways. */
 .tablewrap {
   overflow-x: auto;

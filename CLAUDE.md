@@ -122,7 +122,11 @@ screen that uses them means the same visual thing by them.
   `title` attribute; this is a display shortcut, not a replacement.
 - `src/styles/core.css` — structure and the slot contract. Project-agnostic:
   never edit it per app. `src/styles/theme.css` is the file to fork for a
-  different look.
+  different look. `src/styles/editorial.css` is the editorial register
+  (landings, reading pages, `.hint`), CSS only; `src/styles/fonts.css` the two
+  webfonts. All four are held to `design/` (the Solid Kit design system's
+  `tokens.json` and `bundle.css`) exactly: change a value there first. Help
+  text is `.hint`, never `.meta`; the serif is never bold.
 - `src/ui/` — the UX layer. `ux.ts` holds the preferences that are values,
   `patterns.ts` the components that enforce them, `a11y.ts` the focus and
   announcement helpers the shell calls on every render, `theme.ts` the theme
@@ -156,12 +160,14 @@ surfacing the server's error graph.
 set in every mode — a token defined for light but not dark renders one theme's
 text on the other theme's ground.
 
-Light is the default for everyone; dark and high contrast are a choice, made
-with the switch in `src/ui/theme.ts` and stamped on `<html data-theme>` before
-first paint by an inline script in each HTML entry
-([ADR 008](docs/adr/008-light-by-default.md)). Never add a
-`prefers-color-scheme: dark` block — the audit refuses it; the only OS signal
-followed is `prefers-contrast: more`. Not a hardcoded class and not
+Light is the default for everyone, stamped `data-theme="light"` in each HTML
+entry. The theme button (`src/ui/theme.ts`) cycles Light → Dark → Same as this
+device, and "same as this device" is resolved to dark, contrast or light by
+the blocking first-paint script in each entry, which also follows the device
+while the page is open ([ADR 008](docs/adr/008-light-by-default.md), amended).
+Never add a `prefers-color-scheme` block, nor a `prefers-contrast` copy of the
+contrast theme — the audit refuses both in `theme.css`; High contrast is
+reached only through `prefers-contrast: more`. Not a hardcoded class and not
 JS-applied inline styles. Text tokens clear WCAG AA 4.5:1 against the surface
 behind them, and AAA 7:1 in the high-contrast theme, whose borders also reach
 3:1; `--text-tertiary` is the one that gets this wrong in practice, because it
