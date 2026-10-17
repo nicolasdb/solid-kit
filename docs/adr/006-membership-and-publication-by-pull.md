@@ -1,7 +1,9 @@
 # ADR 006 — Membership and publication by pull
 
-**Status:** proposed · **Applies to:** backoffice, collective pods (HyperScope
-first, then Maps of Making and networks), the collective's agent on Hermes
+**Status:** proposed; amended 2026-10-17 (§8: the pull runs as code, one
+puller, LLM agents apart, any format) · **Applies to:** backoffice,
+collective pods (HyperScope first, then Maps of Making and networks), the
+MCP connector (solid-css-overlay), the collective's agents
 
 ## Context
 
@@ -49,7 +51,8 @@ Nothing is ever written into the common pod by a member.
 2. **Announce.** The member (or their app) sends an `as:Announce` to the common
    pod's `inbox/`, with the bundle's URI as `as:object`.
 3. **Pull.** The collective's agent fetches the bundle and stores a snapshot
-   (§3). It is the only writer on the common pod.
+   (§3). It is the only writer of `depots/`. Since §8, this agent is the
+   puller, and the pull is code, not an LLM following steps.
 4. **Follow.** The agent subscribes to changes (§4). A new ETag produces a new
    snapshot, and a new confrontation runs against it. There is no "v2" deposit:
    editing your own document *is* the new version.
@@ -127,10 +130,14 @@ from non-members wait for a human.
 The collective keeps a copy, never only a link. A confrontation must refer to
 the exact text it judged. A link could change after the judgement, or vanish.
 
-- Path: `depots/<member-slug>/<bundle-slug>/<published>-<etag>/`. It holds the
+- Path: `depots/<member-slug>/<file-slug>/<pull time, UTC>/`, one folder
+  per file (amended 2026-10-17; first written as
+  `<bundle-slug>/<published>-<etag>/`, which the pull procedure never used:
+  a bundle is a container of files that change one by one, and CSS's ETag
+  says nothing the time does not, see Live evidence). It holds the
   original bytes unchanged, plus a `provenance.ttl` that records the source URI,
-  source ETag, fetch time, the fetching agent, and the Announce that triggered
-  the fetch.
+  source keys, a hash of the bytes, fetch time, the fetching agent, the
+  member it is attributed to, and the Announce that triggered the fetch.
 - **Snapshots are never rewritten or deleted by the pull.** If the source
   disappears (404) or access is revoked (401/403), the next snapshot is not
   taken and the bundle is marked `source-gone` or `access-revoked`. Earlier
@@ -146,6 +153,7 @@ the exact text it judged. A link could change after the judgement, or vanish.
   Markdown or plain text extracted from it for the agent and for oxigraph is
   derived and rebuildable ([ADR 001](001-index-vs-truth.md)). If it is stored
   beside the snapshot, it is named so it cannot be mistaken for the original.
+  How it is made and named: §8.
 
 #### Versions (proposed)
 
@@ -188,8 +196,10 @@ rule 5).
 ### 4. Change detection: a notification is a trigger, never data
 
 CSS 7 implements the Solid Notifications Protocol, and pocpod0's config imports
-`css:config/http/notifications/all.json`. The collective's agent subscribes
-with a `WebhookChannel2023` whose `sendTo` is the Hermes webhook.
+`css:config/http/notifications/all.json`. The puller subscribes with a
+`WebhookChannel2023` whose `sendTo` is a route on the MCP connector, which
+runs the pull itself (§8; first written as "the Hermes webhook", when the
+pull was to be an LLM task on Hermes).
 
 Properties from the CSS documentation that this design relies on:
 
@@ -214,18 +224,22 @@ the signature is defence in depth, not the security boundary.
 **Polling is the fallback, not a second design.** A scheduled pass
 (conditional GET with `If-None-Match` on every followed bundle) covers two
 cases: providers that do not implement notifications, and notifications lost
-while Hermes was down. The webhook makes changes quick to arrive; the poll
+while the connector was down. The webhook makes changes quick to arrive; the poll
 makes sure none is missed.
 
 ### 5. Who holds which rights on the common pod
 
-| Container | Members and their agents | Collective agent | Owner (admin) |
-|---|---|---|---|
-| `inbox/` | Append (authenticated agents, members or not) | Read | Control |
-| `depots/` | Read | Read, Write | Control |
-| `confrontations/`, `chantiers/`, `briefs/` | Read | Read, Write | Control |
-| `principles/`, `membres.ttl` | Read | Read | Control; writes after ceremony or acceptance |
-| `config.ttl` | Read (public) | Read | Control |
+| Container | Members and their agents | Puller (`hs:agent`) | Confronters (§8) | Owner (admin) |
+|---|---|---|---|---|
+| `inbox/` | Append (authenticated agents, members or not) | Read | — | Control |
+| `depots/` | Read | Read, Write | Read | Control |
+| `confrontations/`, `chantiers/`, `briefs/` | Read | Read | Read, Write | Control |
+| `principles/`, `membres.ttl` | Read | Read | Read | Control; writes after ceremony or acceptance |
+| `config.ttl` | Read (public) | Read | Read | Control |
+
+Split in two columns on 2026-10-17 (§8); before, one collective agent held
+both. Other agents of the collective (a chat bot, for instance) get what
+their audience may see, often `public/` only, and are not in this table.
 
 `config.ttl` is the exception to "members only": it is how an applicant
 learns where the inbox is and which agent to grant, so it is read *before*
@@ -255,9 +269,10 @@ collective's work in their own conversations.
   what it builds on (`prov:wasDerivedFrom`, from the member's
   `s-appuie-sur:`) and what the confrontation found. Markdown never goes in:
   its sidecar does.
-- **Who loads it**: the collective's agent only (`hs:agent`), with its own
+- **Who loads it**: the puller only (`hs:agent`), with its own
   credentials, so the pod's rules decide what it can load
-  (pocpod0 `graph_ingest`).
+  (connector `graph_ingest`). Since §8, by code, after each confrontation,
+  not by the LLM that confronted.
 - **Who reads it**: a member on the roster, or an agent a listed member
   declares (`acl:delegates`), read-only, over the folders that WebID can
   read on the pod at that moment (pocpod0 `graph_query`). The index never
@@ -342,19 +357,155 @@ profile or in a document they grant the collective Read on (a field a
 collective asks for is not always public); how a request is refused against
 a shape (an `as:Reject` naming what is missing).
 
+### 8. The pull runs as code; LLM agents stay on the collective's pod (added 2026-10-17)
+
+**Why.** Until now the pull was an LLM following `procedure-pull.md`: it
+read each file and wrote it back, so the bytes went through the model.
+Xavier's first shares (`.docx`, `.pdf`, pictures, Markdown exported from
+Google Docs with base64 images) showed the three ways that breaks: the
+connector reads as text, so a binary comes back corrupted; a tool call's
+body is capped near 100 kB, so a large file cannot be written back; and a
+several-MB file floods the model's context before that. Rewording the
+procedure fixes none of it. The bytes must not go through the LLM.
+
+**Two roles, two kinds of identity.** One WebID per agent, never shared by
+two agents (each visit then reads plainly in an access log).
+
+- **The puller** is `hs:agent` in `config.ttl`: exactly one, the only WebID
+  members grant Read to (§1.1). **Only code uses it**, in the MCP
+  connector: copy, extract, load the graph. Its every action is directed (an
+  action, a source, a target), so a document cannot steer it: no model reads
+  what it fetches. It is a WebID of its own, delegated by the collective's
+  account; never the account itself, which holds Control over the common
+  pod and could rewrite `config.ttl`, the rules and the principles if the
+  connector were compromised. Its `foaf:name` says its role
+  (`HyperScope·pull`). For HyperScope it stays `agents/agent#me`, so
+  members' grants hold as they are.
+- **LLM agents** (Claude for the admin, a Hermes bot on Discord, a
+  confronter on a schedule) each have their own WebID, delegated by the
+  collective's account, with rights **on the common pod only**, given by
+  its admin for each agent's audience (§5). They are never in members'
+  rules. Those that confront are declared in `config.ttl` as
+  `hs:confronter` (zero or more; `sb:confronter` once §7 lands), so the
+  skill can check its role. Changing or adding one asks nothing of members.
+
+**Why not several WebIDs in members' rules.** Considered, for a collective
+running a controlled agent and an open one:
+
+- *exposure*: an agent talking to people outside the collective (a bot on a
+  public channel) holding Read on members' folders can be led, by a message
+  or a planted document, to repeat their contents to non-members;
+- *consent*: sharing answers "who can read this?"; the answer must be one
+  named identity, not a list that may change afterwards;
+- *drift*: `config.ttl` can change, the rules already written on each
+  member's pod do not follow; every change would need every member to share
+  again, and a forgotten rule keeps its access. The backoffice already
+  requires exactly one `hs:agent`.
+
+**The pull, as code.** A connector feature acting as the puller:
+`solid_snapshot(source, target)` GETs with the puller's credentials and PUTs
+the same bytes with the same `Content-Type`; the pull (announcements,
+membership on both sides, listing, keys, snapshot, `provenance.ttl`,
+report) runs on it, exposed as a tool so an admin can run it by hand and
+callable by the webhook (§4) with no model at all. It hashes the bytes,
+which is what "only when the bytes changed" (§3) needed. The procedure
+becomes the specification of that code and the guide to its report.
+
+**Derived text, made at snapshot time.** The same code, in the same pass,
+writes `<file>.texte.md` beside the original; also a tool, to redo one or
+to backfill older snapshots. Extractors run in the connector's image:
+
+| Source | Derived text |
+|---|---|
+| `.md`, `.txt` | as is, each `data:` URI replaced by `[image: <alt>, <type>, <size>]` |
+| `.docx`, `.odt` | pandoc |
+| `.pdf` | pdftotext; a scan with no text is marked, never guessed |
+| images | none: the confronter is shown the image itself (MCP image content), up to a size cap, and the snapshot is marked |
+| anything else | none; snapshotted, marked `format-non-lu`, never refused silently |
+
+`provenance.ttl` links them both ways:
+`<original> hs:texte <original.texte.md>` and
+`<original.texte.md> prov:wasDerivedFrom <original>`.
+
+**No size cap on the pull.** Code streams the bytes from GET to PUT; no
+model holds them. The limit that remains is the confronter's reading (see
+below), and the space on the common pod, which is the collective's own
+choice, not this protocol's.
+
+**An extraction says how it went.** It records, in `status.ttl` (§3), the
+tool and its version, its exit status and warnings, and what can be
+measured (pages in the PDF against pages with text, characters, `data:`
+URIs left). Three outcomes:
+
+- `texte-complet`;
+- `texte-partiel`, with what is missing (pages 12 to 40 have no text, a
+  table pandoc could not read). Incomplete is not always detectable; these
+  measures catch the common cases, and the confronter, reading the text,
+  can mark it partial too;
+- `texte-echec`: no usable text.
+
+**Confrontation starts when the pull is done, never earlier.** The pull
+runs to its end (snapshots, then derived text, then status), and only then
+calls the confronter, with the list of snapshots it made. The confronter
+takes a snapshot whose status is `texte-complet`, `texte-partiel` or an
+image; it confronts a partial text and says so in its report, as a 🟧 on
+the reading itself, with what was missing. It never confronts
+`texte-echec` or a snapshot without a status: those appear in the pull
+report for the admin. The extraction tool is there for those cases, and
+for an "accident" (a pull stopped before its extraction): run again on one
+snapshot, or on all older ones once an extractor is fixed. The original is
+never touched; the derived text is rebuilt (ADR 001).
+
+**A confrontation names the text it read**: the derived text's address and
+its hash. A new extraction that changes the text leaves earlier
+confrontations as they were, marked as made on an earlier reading, and puts
+the snapshot back among those waiting.
+
+**A long text is read in parts.** A confronter has a context, so a text
+larger than it can read at once is confronted part by part (by heading, or
+by page), and the report covers the whole and says it was read in parts.
+Never truncated silently.
+
+**What the graph points at, and who wrote it.** The subject of a
+confrontation's sidecar is the **original in its snapshot** (the `.docx`),
+not the derived text: the original is what was shared, cited and
+downloaded; the text is how it was read. A reader gets both addresses. The
+author is `dcterms:creator`, the **member's** WebID, taken from
+`prov:wasAttributedTo` in `provenance.ttl`, which the pull fills from the
+announcement: when a member's agent announced, the pull follows
+`acl:delegates` in the member's profile back to the member. An agent is
+never credited as author.
+
+**Where each part lives.**
+
+| Layer | What | Where |
+|---|---|---|
+| tools (MCP) | `solid_snapshot`, the text extraction, `graph_ingest`, `graph_query` | the connector |
+| pipeline, code | announcement → pull → derived text; after a confrontation → graph | the connector, triggered by webhook, with the scheduled pass behind |
+| procedures and skill, LLM | confrontation; a member's contribution; reading a pull report | `mcp-connector/procedures/`, `skills/collectif/` |
+
+The LLM is left one job, confrontation, because judging a text against
+principles needs reading. Steps, order and what is deferred:
+solid-css-overlay
+[`mcp-connector/docs/collective-pipeline.md`](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/docs/collective-pipeline.md).
+
+Not built. Open: the size of a part when a long text is read in parts, set
+from the first real backlog.
+
 ## Consequences
 
 - **A member onboards with one grant.** They grant the collective's agent Read
   on `output2/hyperscope/`. This happens on their own pod, in their own
   backoffice, and becomes a step in the onboarding path.
-- **The collective's agent must run somewhere that listens.** On Hermes: a
-  dedicated agent with its own WebID and connector, a reachable webhook, the
-  14-day re-subscribe task and the polling fallback. Until that agent exists,
-  a pull triggered by hand from a claude.ai session with the same identity is
-  a valid stopgap, because the protocol does not care who triggers the GET.
-- **One identity, one connector.** The WebID that pulls is the WebID members
-  grant to. Retire the claude.ai connector (`hyperscopeMain`) when Hermes takes
-  over, so that journals can tell a scheduled task from a manual session.
+- **The pull must run somewhere that listens.** In the MCP connector (§8):
+  a reachable webhook, the 14-day re-subscribe task and the polling
+  fallback. Until it exists, a pull triggered by hand from a claude.ai
+  session with the same identity is a valid stopgap, because the protocol
+  does not care who triggers the GET; it carries text only.
+- **One identity, one use.** The WebID that pulls is the WebID members
+  grant to, and only code uses it. Retire the claude.ai connector
+  (`hyperscopeMain`) when the pull runs as code, so that a member's access
+  log can read every visit of that WebID as a pull.
 - **The backoffice needs several pods, not a push button.** It must read the
   common pod, and pods where a teammate granted you something (the Xavier
   case), with your own WebID. That is a list of places, not a publishing
