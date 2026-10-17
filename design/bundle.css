@@ -800,8 +800,11 @@ button.link-button {
 button.link-button:hover { color: var(--text-primary); text-decoration: underline; }
 .panel-card button.link-button { color: var(--accent); }
 
-/* The theme switch: an icon button in the top bar or the landing's nav. */
-.icon-button {
+/* The theme switch: an icon button in the top bar or the landing's nav.
+   `button.` on purpose: it is also `button.small`, whose padding would win on
+   specificity over a bare `.icon-button` and leave 10px of the 36px for the
+   icon. */
+button.icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
