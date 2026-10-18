@@ -606,6 +606,58 @@ h2:focus-visible,
   }
 }
 
+/* ── Progress ─────────────────────────────────────────────────────────────── */
+
+/* Two lines, one block: the queue (a .hint), then the item being worked on.
+   Its height is held while it shows, so the list under it does not jump. */
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: 3rem;
+}
+
+.progress[hidden] { display: none; }
+
+/* A long name is cut in the middle: the stem shrinks, the extension stays. */
+.progress-queue { display: flex; max-width: 100%; min-width: 0; white-space: nowrap; }
+.progress-name { display: inline-flex; min-width: 0; }
+.progress-stem { overflow: hidden; text-overflow: ellipsis; }
+
+/* The body face, not mono, with even-width digits so the numbers hold still. */
+.progress-meter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--text-tertiary);
+}
+
+.progress-meter[hidden] { display: none; }
+.progress-cells { display: inline-flex; gap: 2px; }
+
+/* Slanted cells, as a terminal draws ▰▱. Empty ones are the quiet text tone at
+   a quarter: findable in every theme without competing with the filled ones. */
+.progress-cells i {
+  width: 0.5rem;
+  height: 0.3rem;
+  border-radius: 1px;
+  background: var(--text-tertiary);
+  opacity: 0.28;
+  transform: skewX(-20deg);
+}
+
+.progress-cells i.is-on { background: var(--accent); opacity: 1; }
+
+.progress-value {
+  min-width: 4ch;
+  text-align: right;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
 /* ── Toast ────────────────────────────────────────────────────────────────── */
 
 .toast {
@@ -986,8 +1038,31 @@ button.icon-button {
 
 .reading .prose { max-width: var(--measure-prose); }
 
+/* A document shown on a card, inside an app: a file opened from a pod. The
+   card takes the reading width, centred, so the page is not weighted to one
+   side; the text inside keeps a comfortable line (--measure-prose, about 72
+   characters), centred too. Wider than that is harder to read, not roomier:
+   the eye loses the start of the next line. Pictures, tables, code and
+   diagrams take the card's whole width. Use with .prose. */
+.prose-card {
+  max-width: var(--width-reading);
+  margin-inline: auto;
+  padding: var(--space-8);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
+}
+
+/* .prose.prose-card, not .prose-card: .prose sets each block's margins at
+   (0,1,1), which a bare .prose-card > * would lose to, pinning the text left. */
+.prose.prose-card { max-width: var(--width-reading); }
+.prose.prose-card > * { max-width: var(--measure-prose); margin-inline: auto; }
+.prose.prose-card > :is(table, figure, pre, hr, .diagram),
+.prose.prose-card > p:has(> img:only-child) { max-width: none; }
+
 @media (max-width: 40rem) {
   .reading { padding: var(--space-8) var(--space-4) calc(var(--space-8) + env(safe-area-inset-bottom)); }
+  .prose-card { padding: var(--space-4); }
 }
 
 /* ── Meta line: counts and facts joined by middots ────────────────────────── */
