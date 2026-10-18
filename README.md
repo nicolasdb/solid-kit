@@ -57,7 +57,7 @@ Then, in order:
 | `src/styles/fonts.css` | Newsreader 400 and 400 italic, Commit Mono 400 and 700, self-hosted from `@fontsource` 5.3.0, latin only. |
 | `src/ui/theme.ts` | The theme button: Light → Dark → Same as this device. The first-paint script in each HTML entry is its other half. |
 | `design/` | The Solid Kit design system's `tokens.json` and `bundle.css`, the reference these styles are held to. Exact values: change them there first, then here. |
-| `src/ui/patterns.ts` | The UX patterns as components: concept card, phase rail, comprehension checkpoint, empty state, pending state, undo toast. A limit enforced by a component cannot be violated by accident. |
+| `src/ui/patterns.ts` | The UX patterns as components: concept card, phase rail, comprehension checkpoint, empty state, pending state, progress (the queue, then the item), undo toast. A limit enforced by a component cannot be violated by accident. |
 | `src/ui/a11y.ts` | `focusView` and `announce` — what keeps a screen change perceivable when the screen is replaced wholesale. |
 | `src/ui/ux.ts` | The UX preferences that are values: chunks per step, options per choice, undo window. Change them here; the tests and the audit follow. |
 | `styleguide.html` | The design system rendered from its own tokens, with measured contrast ratios, a preview of all three themes and the theme button. Ships in `dist/`. |
@@ -98,6 +98,15 @@ exactly; nothing is reinterpreted on the way in.
   is open. High contrast is not in the cycle: a device asking for more
   contrast gets it. There is no `@media (prefers-color-scheme)` block in any
   stylesheet ([ADR 008](docs/adr/008-light-by-default.md)).
+- **Reading a document.** A file opened in an app is `.prose.prose-card`: a
+  card at `--width-reading` (920px), centred, with the text at
+  `--measure-prose` (about 72 characters), centred too; pictures, tables and
+  diagrams take the card's width. Never widen the text to fill the screen:
+  past about 75 characters the eye loses the start of the next line.
+- **Measured work** is `renderProgress`: line 1 the queue (a `.hint`, "2 of
+  5 · name", the name cut in the middle), line 2 the item (cells in sage, the
+  share in bold, the amount), in the body face with even-width digits.
+  Unmeasured waiting is `renderPending`.
 - **Flat, square, readable.** No shadows, gradients or backdrop blur. At most
   4px radius on a rectangle, except `--radius-mark` (6px) on the brand mark.
   Text clears 4.5:1 on `--surface` and `--surface-elevated` in every theme
