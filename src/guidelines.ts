@@ -314,7 +314,7 @@ function render(): void {
       )}
 
       ${section(
-        "progress",
+        "measured",
         "Measured work: the queue, then the item",
         `When the work can be measured, a file sent byte by byte, say it in two
          lines: which item of how many, then how far along this one is. A

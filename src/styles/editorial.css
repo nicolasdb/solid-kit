@@ -333,6 +333,7 @@ button.icon-button {
    the eye loses the start of the next line. Pictures, tables, code and
    diagrams take the card's whole width. Use with .prose. */
 .prose-card {
+  width: 100%;
   max-width: var(--width-reading);
   margin-inline: auto;
   padding: var(--space-8);
