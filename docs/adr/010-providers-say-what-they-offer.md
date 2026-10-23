@@ -68,12 +68,31 @@ page shows the app's `client_name`, which the app chooses itself, and a random
 5. **The server keeps its own guard.** `ONBOARD_CORS_ORIGINS` (the connector)
    still lists which app origins may mint. The descriptor tells apps what
    exists; it grants nothing.
-6. **Consent names the app's origin.** The consent page shows where the app
-   is served from (the client's redirect URI host, or its Client ID Document's
-   URL), marked as the thing to check, above the name the app gives itself.
+6. **Consent names the app's origin, when the server can vouch for it.** CSS
+   7.2's consent data (`ClientInfoHandler`) carries `client_id`, `client_name`,
+   `client_uri`, `logo_uri`, ... and no redirect URIs; everything but the
+   `client_id` is declared by the app itself. So:
+   - Our apps log in with a **Client ID Document**: the `client_id` is a URL
+     on the app's own origin (`https://backoffice.mapsofmaking.org/id.jsonld`)
+     listing its `redirect_uris`. CSS fetches it and redirects only there, so
+     that URL's host is where the app runs. The consent page shows it, large,
+     as the thing to check, above the name the app gives itself.
+   - A `client_id` that is not a URL (dynamic registration, any origin can get
+     one): the page says the app did not say where it is served from, and
+     shows `client_name` as a claim, not a fact.
+   - No CSS component for this: the page reads what CSS already sends.
    The provider's host in the header is set large enough to read, and an
    instance's own skin (not the generic one) is the default for any instance
    open to the public.
+7. **One model of an agent: a WebID in its owner's pod, linked to its owner's
+   account.** The owner is a person or a collective (a collective has its own
+   account and pod). CSS makes client credentials only for a WebID linked to
+   the account asking (`CreateClientCredentialsHandler`:
+   `webIdStore.isLinked`), and the connector's mint gate checks the same link.
+   An agent with an account of its own would need a password nobody uses, and
+   its revocation would live in a second place. The agent needs no pod of its
+   own: it works where it was granted access. The overlay's install notes
+   change to this model.
 
 ## Consequences
 
@@ -93,12 +112,17 @@ page shows the app's `client_name`, which the app chooses itself, and a random
 - A provider can lie in its descriptor. It gains nothing: its endpoints only
   ever receive its own cookie.
 
-## Open
+- The backoffice moves from dynamic registration (`clientName` in
+  `src/lib/auth.ts`) to a Client ID Document served by each deploy, its URL
+  and redirect URI from deploy configuration.
+- An app we do not control, registered dynamically, gets a consent page that
+  says it is unverified. That is true, and it is the case to be wary of.
 
-- Does CSS 7.2's consent response carry the client's redirect URIs (point 6),
-  or does the page need the Client ID Document? To check against the image.
-- The connector must boot with no identities, or `/onboard/mint` can never
-  create the first agent (solid-css-overlay, found 2026-10-23).
-- Two models of an agent exist: the backoffice's (a WebID in the owner's pod,
-  `profile/<name>#me`, linked to the owner's account) and the overlay's
-  install notes (an account and a pod of its own). Settle on one.
+## Resolved while drafting (2026-10-23)
+
+- **Redirect URIs on the consent page:** CSS 7.2 does not send them
+  (`ClientInfoHandler`, read off the 7.2.0-5 image). Point 6 rests on the
+  Client ID Document instead.
+- **The connector booting with no identities:** fixed in solid-css-overlay
+  7.2.0-5; it serves `/onboard/` alone until the first agent is minted.
+- **Two models of an agent:** point 7.
