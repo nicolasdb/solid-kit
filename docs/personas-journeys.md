@@ -64,6 +64,35 @@ features can build on the recognised relation (a map of members, a shared
 folder, the graph loop). The loop is the deeper benefit, from sharing data
 across pods; the handshake is worth having without it.
 
+### How the handshake shows (MoM map)
+
+On a space's card, each network it claims is a chip. Two states only:
+
+| State | Means | Chip |
+|---|---|---|
+| **Claimed** | The space's file says `memberOf`; the network hasn't recognised it (yet) | Dashed outline, no fill, muted text |
+| **Recognised** | Both sides say it: claim + the network's roster | Solid outline, filled with `--bernard-blue`, ink text |
+
+- **Outline carries the meaning, colour adds to it.** Dashed vs solid reads in
+  greyscale and for colour-blind people; the blue fill is a bonus, never the
+  only signal (WCAG 1.4.1). Dashed = "not yet both sides" is the same sign the
+  wireframe used for a status not asked yet.
+- **Not an ink fill.** On the map, an ink-filled chip already means a pressed
+  filter (`.chip[aria-pressed="true"]`).
+- **Its own row, apart from status.** Opening hours (`OPEN`) is a status in
+  coloured text; memberships sit on a separate row under a mono label
+  ("MEMBER OF"), like the card's other labels. The row tells them apart before
+  the style does.
+- **Words for the accessible name and the tooltip:** "VULCA: claimed, not yet
+  recognised by VULCA" / "VULCA: member, recognised by both".
+- **Ended is gone.** When the space drops the claim, the chip disappears; no
+  "former member" state. When the network drops it, the chip goes back to
+  dashed, because the claim is still in the space's file.
+- **The chip is a door.** Clicking it shows that network's members on the map.
+
+Unchanged, the colours fit the riso skin: `--bernard-blue` is already in the
+MoM tokens, and ink on it clears AA.
+
 ## Personas
 
 | # | Persona | Who, concretely | Vertical |
@@ -91,6 +120,11 @@ Each cell: **trigger** → **value** → **object left with** → **comes back w
 | **L1** | **Trigger:** wants the space on the map / to be found. **Value:** the space is on the map, from a file they own. **Object:** the space's JSON at a public URL, the link to register on the map. **Comes back:** to update hours, equipment, events, in MoM's backoffice or by telling Bernard's chatbot; the map shows "last updated" |
 | **L2** | **Trigger:** questions they answer over and over ("do you have a laser cutter?"). **Value:** an agent that answers from the space's own file. **Object:** an agent identity granted the space's folder. **Comes back:** when the file changes; to read the access log |
 | **L3** | **Trigger:** a network invites the space, or the space wants to be seen among its peers. **Value:** the handshake (above): the space is recognised as part of the network, and can leave at once. **Object:** `memberOf` in the space's file, the network's acceptance. **Comes back:** rarely; that's fine |
+
+Bernard is MoM's agent (the Mother Sands lore): the same agent as L2, with
+the MoM graph to query. A coordinator who wants their own bot where their
+community already talks (Discord, Matrix…) is a side quest: an agent
+archetype living standalone, in its own container (the hermes line). TBD.
 
 Handing over: the account is on a role email, so a new coordinator takes the
 mailbox and with it the password reset. No account transfer feature needed.
@@ -164,10 +198,9 @@ and the release notes.
 
 ## Open questions
 
-- Bernard's chatbot as a way back for P1: the same agent as L2, or the
-  vertical's own?
-- How the handshake is shown so its lightness reads as a feature, not as
-  "nothing happened".
+- The membership chip's final design (proposal above).
+- The standalone agent archetypes (a coordinator's own bot on Discord,
+  Matrix…): scope and where they live.
 
 ## Sources
 
