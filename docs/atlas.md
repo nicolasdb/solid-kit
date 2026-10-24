@@ -83,6 +83,11 @@ These live in [`adr/`](adr/) and apply across repos:
   CSS stays stock; the overlay ships as an image (`solid-css-overlay`), pods
   are subdomains on new instances, and an instance owns only its skin and its
   words.
+- [010 — A provider says what it offers; the account stays with its own app](adr/010-providers-say-what-they-offer.md):
+  `/.well-known/css/provider.json`, apps detect from the WebID's issuer,
+  account features same-site only with no password in the app, shown not
+  hidden, consent names the app's origin (Client ID Document), and an agent
+  is a WebID in its owner's pod linked to its owner's account.
 
 The agent's side of 006 is written as [procedures](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/procedures/README.md), beside the connector in solid-css-overlay:
 pull and confrontation, copied and adapted by each collective.

@@ -1,6 +1,6 @@
 # ADR 010 — A provider says what it offers; the account stays with its own app
 
-**Status:** proposed 2026-10-23, to deliberate · **Applies to:** solid-css-overlay
+**Status:** accepted 2026-10-24 (proposed 2026-10-23) · **Applies to:** solid-css-overlay
 (every instance: pod.nicolasdb.eu, Maps of Making, the next one),
 solid-backoffice, and any app that offers provider features (agents, connector)
 
@@ -63,8 +63,10 @@ page shows the app's `client_name`, which the app chooses itself, and a random
      managed at backoffice.mapsofmaking.org") and links there.
 4. **Shown, not hidden.** For a WebID whose provider offers less, the section
    is shown with what it would do and why it is not available here ("Your
-   provider, solidcommunity.net, does not offer agents. Servers running
-   solid-css-overlay do."). Informative, never a nag, never a fake button.
+   provider does not offer agents. Servers running solid-css-overlay do.").
+   The provider is not named: it is one of many, and naming it reads as
+   blame. Our overlay is named, so the person knows what to look for.
+   Informative, never a nag, never a fake button.
 5. **The server keeps its own guard.** `ONBOARD_CORS_ORIGINS` (the connector)
    still lists which app origins may mint. The descriptor tells apps what
    exists; it grants nothing.
