@@ -57,6 +57,12 @@ provider never reaches into an app's data semantics.
   holds code and history; the pod carries the promoted snapshot, published on
   tag.
 
+## Who the apps are for
+
+[personas-journeys.md](personas-journeys.md) owns who arrives, why, and what
+they get at each level (L1 something kept, L2 an agent, L3 a collective).
+Onboarding screens in any repo are drawn from it.
+
 ## Cross-cutting decisions
 
 These live in [`adr/`](adr/) and apply across repos:
