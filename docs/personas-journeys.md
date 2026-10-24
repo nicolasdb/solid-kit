@@ -18,8 +18,18 @@ Decided 2026-10-24. Draft for discussion.
   customizes the top layer: skin, words, the first useful object. The levels
   underneath are shared.
 - **Onboarding is a one-time app per vertical**, on its own subdomain, same site
-  as the pod server. The backoffice is where people *come back*, not where they
-  start.
+  as the pod server (ADR 010). Its name is the vertical's to choose, from its
+  own story. It can't be a subdomain of the pod server's host, where every
+  subdomain is a pod. The backoffice is where people *come back*, not where
+  they start.
+
+### Reference: small indicators
+
+![Segmented bars and thin gauges, each with a label and a number](moodboard/progress-indicators.png)
+
+The register for progress: small, dense, glanceable. A label, a few segments
+or a thin bar, a number. It tells you where you are right now and asks for
+nothing. Not a big stepper across the top of the screen.
 
 ## The levels
 
@@ -27,22 +37,46 @@ Decided 2026-10-24. Draft for discussion.
 |---|---|---|---|
 | **L1** | Something of mine, kept | A profile (with or without a location) → a file on the pod → backoffice basics: upload, who may see it, link it from the profile | genjson (value, no pod); backoffice J1/J2 (account, profile) |
 | **L2** | An agent on my files | An agent identity, connected to an AI, granted folders; talk to your files | yes: backoffice J8 + connector |
-| **L3** | Thinking with a collective | Join a collective, share a folder, the collective's knowledge graph answers back | joining yes (J1, J3–J5); the value loop (pull → confront → graph answers) **no** |
+| **L3** | Being part of a collective | Claim, announce, accept: a membership either side can end at once. Deeper: share a folder, the collective's knowledge graph answers back | membership yes (J1, J3–J6); the graph loop (pull → confront → graph answers) **no** |
 
 L2 and L3 sit side by side after L1; the person picks either, both or neither.
+
+### What L3 is worth before the loop
+
+Joining is a claim, made in the open, that only recognition makes true:
+
+1. I **claim** it: my profile says I am a member of the collective.
+2. I **announce** it: a request lands in the collective's inbox.
+3. They **accept**: their roster names me. Now both sides say it.
+
+Anyone can claim anything; a claim nobody recognises is just a line of text.
+Either side can **withdraw at once**, without asking the other. It is as light
+as writing a line in a ledger, and as easy to cross out.
+
+That lightness is the value: the relation is **live**, easy to make, easy to
+end, always reversible. It is the opposite of the usual practice, where
+subscribing takes one click and leaving takes a support ticket. It goes
+further than a right to deletion: nobody has to ask anyone to let go.
+
+Because joining costs so little, it proves little. What makes the relation
+hold is earned elsewhere: trust, shared values, working together. Further
+features can build on the recognised relation (a map of members, a shared
+folder, the graph loop). The loop is the deeper benefit, from sharing data
+across pods; the handshake is worth having without it.
 
 ## Personas
 
 | # | Persona | Who, concretely | Vertical |
 |---|---|---|---|
-| P1 | **Space coordinator** | Runs a makerspace, fablab, repair café, a practice (Bernard's hackerspace; the logopède in Namur). Signs up with a role email (`contact@space`) | MoM |
+| P1 | **Space coordinator** | Runs a makerspace, fablab, repair café, a practice (a hackerspace; a speech therapist in Namur). Signs up with a role email (`contact@space`) | MoM |
 | P2 | **Network coordinator** | Coordinates a network of spaces. No location of their own | MoM |
 | P3 | **Invited member** | A person a collective invited. Has no Solid account, doesn't know what one is | any |
-| P4 | **Collective thinker** | Contributes notes to a collective and wants the collective to answer (Niel, Xavier) | HyperScope |
+| P4 | **Collective thinker** | Contributes notes to a collective and wants the collective to answer | HyperScope |
 | P5 | **Curious about AI on own files** | Wants an assistant that reads their documents, not a cloud drive's | any |
 | P6 | **Already on Solid** | Has a WebID elsewhere | any (J2) |
+| P7 | **Maintainer** | Runs an instance: deploys the pod server, the backoffice, a vertical's apps | none |
 
-P1's dentist and materials dealer from `schema-roleplay-personas.md` are P1
+The dentist and the materials dealer from `schema-roleplay-personas.md` are P1
 from this doc's point of view: their difference is the bundle, not the journey.
 
 ## The grid
@@ -54,9 +88,9 @@ Each cell: **trigger** → **value** → **object left with** → **comes back w
 
 | | |
 |---|---|
-| **L1** | **Trigger:** wants the space on the map / to be found. **Value:** the space is on the map, from a file they own. **Object:** the space's JSON at a public URL, the link to register on the map. **Comes back:** to update hours, equipment, events; the map shows "last updated". Where: the vertical's own app (genjson grown up), not the backoffice |
+| **L1** | **Trigger:** wants the space on the map / to be found. **Value:** the space is on the map, from a file they own. **Object:** the space's JSON at a public URL, the link to register on the map. **Comes back:** to update hours, equipment, events, in MoM's backoffice or by telling Bernard's chatbot; the map shows "last updated" |
 | **L2** | **Trigger:** questions they answer over and over ("do you have a laser cutter?"). **Value:** an agent that answers from the space's own file. **Object:** an agent identity granted the space's folder. **Comes back:** when the file changes; to read the access log |
-| **L3** | **Trigger:** the network asks members to join. **Value:** listed among the network's members. **Object:** `memberOf` in the space's file; membership accepted. **Comes back:** rarely; that's fine |
+| **L3** | **Trigger:** a network invites the space, or the space wants to be seen among its peers. **Value:** the handshake (above): the space is recognised as part of the network, and can leave at once. **Object:** `memberOf` in the space's file, the network's acceptance. **Comes back:** rarely; that's fine |
 
 Handing over: the account is on a role email, so a new coordinator takes the
 mailbox and with it the password reset. No account transfer feature needed.
@@ -66,11 +100,13 @@ mailbox and with it the password reset. No account transfer feature needed.
 | | |
 |---|---|
 | **L1** | **Trigger:** wants to show the network. **Value:** the network's page and its members on one map. **Object:** an embed (map of members) to put on the network's own site. **Comes back:** when a space asks to join |
-| **L2** | **Trigger:** "which of our spaces does X?" asked by the public. **Value:** a search bot beside the embed, answering from the members' files. **Object:** the bot, on the same page as the embed. **Comes back:** when it answers wrong |
-| **L3** | Is the collective: accepts requests (J3), sees the roster | |
+| **L2** | **Trigger:** "which of our spaces does X?" asked by the public. **Value:** a search bot beside the embed, answering from the members' files. **Object:** the bot, run by the **network's** agent, on the same page as the embed. **Comes back:** when it answers wrong |
+| **L3** | Is the collective: accepts or refuses requests (J3), sees the roster, can end a membership from its side (J5) | |
 
 This is the persona where L1 and L2 are one gesture: the embed is the value,
-the search bot is the reason to keep it fresh.
+the search bot is the reason to keep it fresh. Separately, any member can
+connect their own AI to their own pod through the connector; the network's bot
+doesn't replace that.
 
 ### P3 · Invited member
 
@@ -78,9 +114,9 @@ the search bot is the reason to keep it fresh.
 |---|---|
 | **L1** | **Trigger:** an invitation link from someone they know. **Value:** "you're in", nothing to understand first. **Object:** a pod address, a sign-in that works, a profile with a name. **Comes back:** via the backoffice bookmark, when the collective asks for something |
 | **L2** | — (door shown once, after L3 value lands: "your notes could also have an agent") |
-| **L3** | **Trigger:** the invitation itself. **Value:** **open question:** today joining grants nothing visible; the value needs L3's loop. **Object:** membership; a shared folder. **Comes back:** when the collective answers |
+| **L3** | **Trigger:** the invitation itself. **Value:** the handshake: recognised as a member, free to leave at once. Later, the collective answering. **Object:** membership; a shared folder. **Comes back:** when the collective asks or answers |
 
-### P4 · Collective thinker (Niel, Xavier)
+### P4 · Collective thinker
 
 | | |
 |---|---|
@@ -105,6 +141,14 @@ Same grid as whichever of P1–P5 they are, minus the account step. J2 fills
 what their profile lacks. The descriptor (ADR 010) decides whether L2 is
 offered on their provider.
 
+### P7 · Maintainer
+
+Not onboarded by an app. Their path is each repo's documentation, organised
+the Diátaxis way: a tutorial to run a first instance, how-to guides for the
+routine (update, back up, add a vertical), reference for the configuration,
+explanation for the decisions (the ADRs). Their "comes back" is the CHANGELOG
+and the release notes.
+
 ## What this tells us to build
 
 1. **MoM's onboarding app** serves P1 and P2 at L1. genjson already gives the
@@ -112,22 +156,22 @@ offered on their provider.
    creating the account and pod, then ending on the public JSON link.
 2. **P2's embed + search bot** is the strongest single case for L2 and the
    reason to keep files fresh. Worth a slice of its own.
-3. **The L3 value loop** gates P3's and P4's value. Until it exists, joining a
-   collective is a formality; say so rather than dress it up.
-4. **The backoffice** is the "comes back" place for P1 (permissions, agents),
+3. **The handshake is already L3's value**: show it as such (claim, announce,
+   accept, leave at once), not as a formality waiting for the loop. The loop is
+   what P4 needs; P1, P2 and P3 get value without it.
+4. **The backoffice** is the "comes back" place for P1 (with Bernard's chatbot),
    P3 and P5. It is never the first screen anyone sees.
 
 ## Open questions
 
-- P3 at L3 before the loop exists: what is the honest value of joining today?
-- P1's "comes back" app: genjson grown up, or the backoffice with a MoM skin?
-- P2's search bot: whose agent is it, the network's or each space's?
-- Where the onboarding app lives (`start.` / `welcome.`) and its name.
-- Do we need a persona for the person who *runs* an instance (Nicolas, Jason)?
+- Bernard's chatbot as a way back for P1: the same agent as L2, or the
+  vertical's own?
+- How the handshake is shown so its lightness reads as a feature, not as
+  "nothing happened".
 
 ## Sources
 
 - `maps_of_making/_bmad-output/planning-artifacts/schema-roleplay-personas.md` (bundles, P1 variants)
 - `maps_of_making/_bmad-output/planning-artifacts/ux-bernard-wizard-spec.md` (L1 grammar for MoM)
 - `solid-backoffice/docs/journeys.md` (J1–J9: the mechanics under each cell)
-- [ux-principles.md](ux-principles.md), [ADR 010](adr/010-providers-say-what-they-offer.md)
+- [ux-principles.md](ux-principles.md), [ADR 006](adr/006-membership-and-publication-by-pull.md), [ADR 010](adr/010-providers-say-what-they-offer.md)
