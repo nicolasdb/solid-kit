@@ -75,28 +75,35 @@ CRM checking subscriptions, its governance rules).
 Mockup: [Membership chip states](https://claude.ai/artifact/VEb5jhJamiG46cvnXYFyLJ)
 (space card, three options, network card).
 
+On the space card the membership chips share the status row: networks
+aligned left, `OPEN` aligned right. No extra section, no legend. The words come
+on hover or focus (tooltip, and the chip's accessible name): progressive
+disclosure.
+
 | State | Space card | Network card |
 |---|---|---|
-| Declared by the space only | `→ CANARY`, dashed outline, muted text | `→ space only` |
-| Declared by the network only | not shown: the space never said it | `← VULCA only` |
-| Recognised by both | `⇄ VULCA`, solid outline, `paper-2` fill, ink text | `⇄ both`, and the count that matters |
+| Declared by the space only | `CANARY`, dashed outline, muted text | "space only" |
+| Declared by the network only | not shown: the space never said it | "VULCA only" |
+| Recognised by both | `VULCA`, solid outline, `paper-2` fill, ink text | "both", and the count that matters |
 
-- **Shape carries the meaning, three ways**: line (dashed / solid), fill
-  (empty / plain), and an arrow that also says who speaks. Holds in greyscale
-  and for colour-blind people (WCAG 1.4.1).
+- **Dashed vs plain is enough** (option A). Line and fill both carry it, so it
+  holds in greyscale and for colour-blind people (WCAG 1.4.1). An arrow for
+  who speaks can come later if needed.
 - **No ink fill** (on the map it means a pressed filter) and **no blue fill**
   (blue is the protected Confirmed pin state; `bernard-blue` belongs to the
   workshop only).
 - **Not the word "claimed"**: on the map it is a pin's public state
   (Unclaimed / Claimed / Live). Memberships say **declared** and
   **recognised**.
-- **Its own row, apart from status.** `OPEN` is a status; memberships sit
-  under a "MEMBER OF" label.
-- **Words for screen readers and tooltips:** "CANARY: declared by Mother
-  Sands, not yet recognised by CANARY" / "VULCA: member, recognised by both".
+- **Tooltip words:** "Declared by Mother Sands. CANARY hasn't recognised it
+  yet." / "Member of VULCA: recognised by both".
 - **Ended is gone.** The space drops its claim: the chip disappears. The
-  network drops it: the chip goes back to `→`, dashed.
-- **The chip is a door** to the network's card and its members.
+  network drops it: the chip goes back to dashed.
+- **The chip is a door** to the network's card.
+
+**The network card is a draft, to brainstorm.** What it shows is undecided.
+Leads so far: the three counts; members sorted by latest activity
+(`updated_at`), or newly recognised members first.
 
 ## Personas
 
@@ -203,7 +210,7 @@ and the release notes.
 
 ## Open questions
 
-- The membership chip: option C (A + direction) proposed in the mockup; to pick.
+- The network card: what it shows and in which order (brainstorm).
 - The standalone agent archetypes (a coordinator's own bot on Discord,
   Matrix…): scope and where they live.
 
