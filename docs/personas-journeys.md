@@ -66,32 +66,37 @@ across pods; the handshake is worth having without it.
 
 ### How the handshake shows (MoM map)
 
-On a space's card, each network it claims is a chip. Two states only:
+A claim goes both ways. A space declares it is a member of a network; a
+network declares a space is its member. A network may list 567 spaces when
+only 345 say so too. **Recognised** = both sides say it: that is the
+handshake. The network can then tie its recognised list to its own tools (a
+CRM checking subscriptions, its governance rules).
 
-| State | Means | Chip |
+Mockup: [Membership chip states](https://claude.ai/artifact/VEb5jhJamiG46cvnXYFyLJ)
+(space card, three options, network card).
+
+| State | Space card | Network card |
 |---|---|---|
-| **Claimed** | The space's file says `memberOf`; the network hasn't recognised it (yet) | Dashed outline, no fill, muted text |
-| **Recognised** | Both sides say it: claim + the network's roster | Solid outline, filled with `--bernard-blue`, ink text |
+| Declared by the space only | `→ CANARY`, dashed outline, muted text | `→ space only` |
+| Declared by the network only | not shown: the space never said it | `← VULCA only` |
+| Recognised by both | `⇄ VULCA`, solid outline, `paper-2` fill, ink text | `⇄ both`, and the count that matters |
 
-- **Outline carries the meaning, colour adds to it.** Dashed vs solid reads in
-  greyscale and for colour-blind people; the blue fill is a bonus, never the
-  only signal (WCAG 1.4.1). Dashed = "not yet both sides" is the same sign the
-  wireframe used for a status not asked yet.
-- **Not an ink fill.** On the map, an ink-filled chip already means a pressed
-  filter (`.chip[aria-pressed="true"]`).
-- **Its own row, apart from status.** Opening hours (`OPEN`) is a status in
-  coloured text; memberships sit on a separate row under a mono label
-  ("MEMBER OF"), like the card's other labels. The row tells them apart before
-  the style does.
-- **Words for the accessible name and the tooltip:** "VULCA: claimed, not yet
-  recognised by VULCA" / "VULCA: member, recognised by both".
-- **Ended is gone.** When the space drops the claim, the chip disappears; no
-  "former member" state. When the network drops it, the chip goes back to
-  dashed, because the claim is still in the space's file.
-- **The chip is a door.** Clicking it shows that network's members on the map.
-
-Unchanged, the colours fit the riso skin: `--bernard-blue` is already in the
-MoM tokens, and ink on it clears AA.
+- **Shape carries the meaning, three ways**: line (dashed / solid), fill
+  (empty / plain), and an arrow that also says who speaks. Holds in greyscale
+  and for colour-blind people (WCAG 1.4.1).
+- **No ink fill** (on the map it means a pressed filter) and **no blue fill**
+  (blue is the protected Confirmed pin state; `bernard-blue` belongs to the
+  workshop only).
+- **Not the word "claimed"**: on the map it is a pin's public state
+  (Unclaimed / Claimed / Live). Memberships say **declared** and
+  **recognised**.
+- **Its own row, apart from status.** `OPEN` is a status; memberships sit
+  under a "MEMBER OF" label.
+- **Words for screen readers and tooltips:** "CANARY: declared by Mother
+  Sands, not yet recognised by CANARY" / "VULCA: member, recognised by both".
+- **Ended is gone.** The space drops its claim: the chip disappears. The
+  network drops it: the chip goes back to `→`, dashed.
+- **The chip is a door** to the network's card and its members.
 
 ## Personas
 
@@ -119,7 +124,7 @@ Each cell: **trigger** → **value** → **object left with** → **comes back w
 |---|---|
 | **L1** | **Trigger:** wants the space on the map / to be found. **Value:** the space is on the map, from a file they own. **Object:** the space's JSON at a public URL, the link to register on the map. **Comes back:** to update hours, equipment, events, in MoM's backoffice or by telling Bernard's chatbot; the map shows "last updated" |
 | **L2** | **Trigger:** questions they answer over and over ("do you have a laser cutter?"). **Value:** an agent that answers from the space's own file. **Object:** an agent identity granted the space's folder. **Comes back:** when the file changes; to read the access log |
-| **L3** | **Trigger:** a network invites the space, or the space wants to be seen among its peers. **Value:** the handshake (above): the space is recognised as part of the network, and can leave at once. **Object:** `memberOf` in the space's file, the network's acceptance. **Comes back:** rarely; that's fine |
+| **L3** | **Trigger:** a network invites the space, or the space wants to be seen among its peers. **Value:** the handshake (above): the space is recognised as part of the network, and can leave at once. The network can count who really says so. **Object:** `memberOf` in the space's file, the network's acceptance. **Comes back:** rarely; that's fine |
 
 Bernard is MoM's agent (the Mother Sands lore): the same agent as L2, with
 the MoM graph to query. A coordinator who wants their own bot where their
@@ -198,7 +203,7 @@ and the release notes.
 
 ## Open questions
 
-- The membership chip's final design (proposal above).
+- The membership chip: option C (A + direction) proposed in the mockup; to pick.
 - The standalone agent archetypes (a coordinator's own bot on Discord,
   Matrix…): scope and where they live.
 
