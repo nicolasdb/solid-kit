@@ -89,6 +89,10 @@ These live in [`adr/`](adr/) and apply across repos:
   account features same-site only with no password in the app, shown not
   hidden, consent names the app's origin (Client ID Document), and an agent
   is a WebID in its owner's pod linked to its owner's account.
+- [011 — An app is one image; an instance brings its config and its look](adr/011-an-app-is-one-image-an-instance-brings-its-look.md):
+  tagged images dressed in the kit's look, `/instance.json` and `/skin.css`
+  mounted per instance, a deploy is a checkout at a tag, and a vertical's look
+  has one source, its design-system repo, mapped onto the kit's slots.
 
 The agent's side of 006 is written as [procedures](https://github.com/nicolasdb/solid-css-overlay/blob/main/mcp-connector/procedures/README.md), beside the connector in solid-css-overlay:
 pull and confrontation, copied and adapted by each collective.
