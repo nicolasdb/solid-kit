@@ -95,7 +95,7 @@ disclosure.
 - **Not the word "claimed"**: on the map it is a pin's public state
   (Unclaimed / Claimed / Live). Memberships say **declared** and
   **recognised**.
-- **Tooltip words:** "Declared by Mother Sands. CANARY hasn't recognised it
+- **Tooltip words:** "Declared by Mother Sand. CANARY hasn't recognised it
   yet." / "Member of VULCA: recognised by both".
 - **Ended is gone.** The space drops its claim: the chip disappears. The
   network drops it: the chip goes back to dashed.
@@ -133,7 +133,7 @@ Each cell: **trigger** → **value** → **object left with** → **comes back w
 | **L2** | **Trigger:** questions they answer over and over ("do you have a laser cutter?"). **Value:** an agent that answers from the space's own file. **Object:** an agent identity granted the space's folder. **Comes back:** when the file changes; to read the access log |
 | **L3** | **Trigger:** a network invites the space, or the space wants to be seen among its peers. **Value:** the handshake (above): the space is recognised as part of the network, and can leave at once. The network can count who really says so. **Object:** `memberOf` in the space's file, the network's acceptance. **Comes back:** rarely; that's fine |
 
-Bernard is MoM's agent (the Mother Sands lore): the same agent as L2, with
+Bernard is MoM's agent (the Mother Sand lore): the same agent as L2, with
 the MoM graph to query. A coordinator who wants their own bot where their
 community already talks (Discord, Matrix…) is a side quest: an agent
 archetype living standalone, in its own container (the hermes line). TBD.
