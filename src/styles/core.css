@@ -109,7 +109,7 @@ button, input, textarea, select {
 
 /* Never remove the focus ring outright — replace it if it clashes. */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus, var(--accent));
   outline-offset: 2px;
 }
 
@@ -184,6 +184,10 @@ button, input, textarea, select {
     --selection            text selection highlight
     --accent               the one primary action color
     --accent-contrast      text drawn ON --accent
+
+  Optional: --focus colors the keyboard focus ring (default: --accent).
+  A skin whose accent is a warning or error color sets it, so the ring
+  never reads as an error.
 
   Define the FULL set in every mode. A slot defined in one mode
   and missing in the other renders one theme's text on the
