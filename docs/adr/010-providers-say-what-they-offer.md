@@ -1,6 +1,6 @@
 # ADR 010 — A provider says what it offers; the account stays with its own app
 
-**Status:** accepted 2026-10-24 (proposed 2026-10-23) · **Applies to:** solid-css-overlay
+**Status:** accepted 2026-10-24 (proposed 2026-10-23); amended 2026-10-30 (see the end) · **Applies to:** solid-css-overlay
 (every instance: pod.nicolasdb.eu, Maps of Making, the next one),
 solid-backoffice, and any app that offers provider features (agents, connector)
 
@@ -128,3 +128,63 @@ page shows the app's `client_name`, which the app chooses itself, and a random
 - **The connector booting with no identities:** fixed in solid-css-overlay
   7.2.0-5; it serves `/onboard/` alone until the first agent is minted.
 - **Two models of an agent:** point 7.
+
+## Amendment (accepted 2026-10-30): a same-site app may create an account
+
+What stays: point 3. Signing in happens on the provider's own pages, no app
+asks for a provider's password, and account features run only same-site.
+
+What it adds: **creating** an account is not signing in. At creation there is
+no password yet: the person chooses one. Maps of Making's home app
+(`home.mapsofmaking.org`, MoM Epic 14) onboards a makerspace in one step
+(the pod's name, the space's mailbox, a passphrase typed twice), the way
+pocpod0 proved it against the account API (`registerAccount`, 2026-07-21).
+Sending that person to the provider's generic sign-up page halfway through
+would lose them at the moment the onboarding is meant to carry them.
+
+8. **A same-site app may create an account, and only create it.**
+   - It runs the account API in order: create the account, add the password
+     login, create the pod (which creates the WebID). The password goes from
+     the form to the server once; the app never stores, shows or resends it.
+   - Then it signs in like any app: Solid-OIDC with its Client ID Document,
+     on the provider's pages (point 6). Whether the cookie set at creation
+     spares the person typing the passphrase again is measured, not assumed
+     (MoM spike 14.0); either way, the provider's page is where it happens.
+   - A cross-site app never creates accounts: it links to the provider's own
+     sign-up page, as it does for every account feature.
+9. **The descriptor says whether accounts can be created.** A new capability
+   in `/.well-known/css/provider.json`, listed only when the instance has open
+   registration on:
+
+   ```json
+   "register": { "path": "/.account/", "podNames": "subdomain" }
+   ```
+
+   No `register` entry means no creation offered: the app says so before any
+   field and offers its other way (for MoM, hosting the file yourself). Name
+   rules are the server's (`PodNameGuard`, ADR 009 amendment); the app checks
+   the same rules early for the person's sake, and the server's answer wins.
+10. **Creation is resumable, and the name is checked first.** CSS's
+    `account.create` is anonymous and unconditional: every call makes a new
+    account, and the pod name is only refused at the last step. So the app
+    checks the name before anything is created (how to ask "is this name free"
+    without creating it is part of spike 14.0), keeps the half-built account
+    for the session (not per pod name: after "taken", the retry uses another
+    name on the same account), and resumes from the failed step. An empty pod
+    name never reaches the network: CSS reads it as "claim the pod root"
+    (found live 2026-07-22).
+11. **Open registration has its own guard.** Before an instance lists
+    `register` publicly, its gateway rate-limits `/.account/` (and any name
+    check). The descriptor still grants nothing (point 5).
+
+Consequences:
+
+- pocpod0's sequence moves into the kit as `lib/register.ts`, with the
+  session-keyed resume state (pocpod0 keys it per pod name, which orphans an
+  account when the name is changed after a refusal).
+- solid-css-overlay adds the `register` entry to the descriptor, written only
+  when registration is enabled in the instance's configuration;
+  `scripts/check-overrides.sh` checks it matches.
+- The provider's login and consent pages are now part of a newcomer's first
+  minutes: their copy is reviewed with the onboarding's (ADR 009).
+- Accepting this amendment unblocks MoM Story 14.3 (with the 14.0 report).
