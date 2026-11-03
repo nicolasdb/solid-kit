@@ -136,7 +136,12 @@ solid-css-overlay#36; the email list never shipped.
 - The gateway templates refuse `/.account/admin/` from outside, as a second
   layer behind the token.
 - Listing every account is new: stock lists only the caller's own. It reads
-  the account storage's `entries('account')`, one more CSS internal to carry.
+  the names in `.internal/accounts/data/` through the data accessor (a
+  directory read, no lock) and confirms each with the account storage. NOT
+  `entries('account')`: that walks every document under `/.internal/`, lock
+  files included, and on 7.3.0 it stalled until "Lock expired after 6000ms"
+  took the server down (CI, solid-css-overlay#36/#37). One more CSS internal
+  (the internal storage's layout) to carry; the smoke run is the check.
 
 **What it leaves open.**
 - No browser page for admins. If one is wanted later, it needs its own answer
