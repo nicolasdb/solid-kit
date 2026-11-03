@@ -1,0 +1,94 @@
+# ADR 012 — Account and pod deletion is the image's second component
+
+**Status:** proposed 2026-11-03, to deliberate · **Applies to:** solid-css-overlay
+(the image), every instance that runs it (pod.nicolasdb.eu, Maps of Making),
+the MCP connector's identity registry, and solid-backoffice if the
+self-service door lives there
+
+## Context
+
+CSS deletes no account and no pod. Its account API removes a login (never
+the last one), client credentials, a WebID link and a pod owner; the only
+account it removes by itself is one left without a login for 30 minutes
+(`BaseLoginAccountStorage`, 1800 s). Checked against 7.2.0's source
+(solid-css-overlay README, "Accounts and pods"), then on 2026-11-03 against
+the stock images: `edge` (7.3.0) and `next` (8.0.0-alpha.3) ship
+`DeleteClientCredentialsHandler` and `DeletePasswordHandler` and nothing that
+deletes an account or a pod. CSS `main` after alpha.3 and upstream plans were
+not checked.
+
+So:
+- a pod name, once taken, stays taken, and every test round burns names;
+- a test instance is cleaned only by a full reset (`docker compose down -v`),
+  which stops being possible the day a real account lives there;
+- the right to erasure (GDPR art. 17) cannot be honoured, not even by an
+  admin. No instance can open to the public without it.
+
+ADR 009 (amendment) allows exactly one component in the image,
+`PodNameGuard`, and says a second one needs its own decision: every
+component is code carried across every CSS release. 8.0 already breaks the
+guard's Components.js context; a second component doubles that cost.
+
+Tracked in solid-css-overlay#17; its agreed shape is that repo's
+`ROADMAP.md`, "Account and pod deletion, for admins".
+
+## Options
+
+1. **Delete from the volume, from outside** (a script on the data folder).
+   Ruled out: the file layout is CSS's private business and may change at any
+   release, and a script races the server's locks.
+2. **Wait for upstream.** Costs nothing to carry, but nothing says it is
+   coming, and an instance cannot open publicly meanwhile.
+3. **Contribute it upstream** (an account-deletion handler in CSS itself).
+   Removes the carry cost for everyone, but its timeline is not ours, and it
+   would land in 8.x at the earliest.
+4. **A component in the image**, beside `pod-name-guard`, using CSS's own
+   stores and locks.
+
+## Decision (proposed)
+
+Option 4 now, written so it can become option 3:
+
+- **One route under `/.account/`**, inside CSS: delete the account's pods'
+  resources depth first through the resource store (so locks and auxiliary
+  resources are handled by CSS), then `delete('account', id)`, which removes
+  logins, pods, WebID links and client credentials together.
+- **Two callers of that route, same code:**
+  - an **admin** may delete any account. Admins are login emails listed in
+    the instance's environment, written into the config at start, the same
+    way as the email sender (`start/email.js`);
+  - the **account owner** may delete their own, after typing their
+    passphrase again.
+- **Front doors** (all calling the route, none deleting on their own):
+  `scripts/admin.sh` (list, delete-account) with a `make` target on the VPS;
+  an account-manager page for admins; "Delete my account" for the person,
+  which says plainly what goes (their pods and everything in them, their
+  WebID, the agents' access).
+- **Outside CSS**, the connector drops the deleted WebIDs from
+  `identities.json`.
+- **Gate before a tag**: a test that deletes an account with a pod and then
+  takes the same pod name again, on both layouts.
+- **Kept small and upstream-shaped**: no store of its own, no change to
+  stock behaviour, so it can be offered upstream and removed from the image
+  the release CSS has it.
+
+## Open questions
+
+- Where "Delete my account" lives: the overlay's account page (stock CSS
+  page, every instance gets it) or solid-backoffice (the place people
+  actually manage their pod). The route is the same either way.
+- Data held elsewhere about a deleted WebID: copies pulled into a
+  collective's pod (ADR 006) are the collective's; does erasure reach them,
+  or only end the pull?
+- Admin list mechanism: settle it with the email settings
+  (mapsofmaking/maps_of_making#15), then reuse.
+- Before building: one look at CSS `main` and its issues, to avoid building
+  what lands next month.
+
+## Consequences
+
+- The image carries two components; every CSS bump checks both (8.0 first).
+- A test instance can be cleaned account by account; real and test accounts
+  can share an instance.
+- An instance can honour erasure, a precondition for opening to the public.
+- ADR 009's "one component" sentence is amended by this ADR if accepted.
