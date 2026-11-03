@@ -78,6 +78,7 @@ Two decisions came with the move:
   `open_fab` made a pod no certificate covers. The guard refuses such names
   and reserved ones on the server. It is the exception to "files where stock
   CSS already looks"; a second component would need its own decision.
+  (Amended 2026-11-03 by ADR 012: account and pod deletion is the second.)
 
 The decision to copy rather than package (ADR 004) still holds for apps: an
 app's code is meant to diverge. A server's identity pages are not.

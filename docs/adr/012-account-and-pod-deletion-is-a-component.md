@@ -1,6 +1,6 @@
 # ADR 012 — Account and pod deletion is the image's second component
 
-**Status:** proposed 2026-11-03, to deliberate · **Applies to:** solid-css-overlay
+**Status:** accepted 2026-11-03 (proposed the same day) · **Applies to:** solid-css-overlay
 (the image), every instance that runs it (pod.nicolasdb.eu, Maps of Making),
 the MCP connector's identity registry, and solid-backoffice if the
 self-service door lives there
@@ -14,8 +14,10 @@ account it removes by itself is one left without a login for 30 minutes
 (solid-css-overlay README, "Accounts and pods"), then on 2026-11-03 against
 the stock images: `edge` (7.3.0) and `next` (8.0.0-alpha.3) ship
 `DeleteClientCredentialsHandler` and `DeletePasswordHandler` and nothing that
-deletes an account or a pod. CSS `main` after alpha.3 and upstream plans were
-not checked.
+deletes an account or a pod. CSS `main` up to the 7.3.0 release (2026-11-02)
+adds nothing either, and the only upstream issue on it (#1139) is closed
+without a feature. The CSS docs' account API (checked the same day) lists
+DELETE for WebID links, client credentials and password logins only.
 
 So:
 - a pod name, once taken, stays taken, and every test round burns names;
@@ -45,7 +47,7 @@ Tracked in solid-css-overlay#17; its agreed shape is that repo's
 4. **A component in the image**, beside `pod-name-guard`, using CSS's own
    stores and locks.
 
-## Decision (proposed)
+## Decision
 
 Option 4 now, written so it can become option 3:
 
@@ -53,6 +55,16 @@ Option 4 now, written so it can become option 3:
   resources depth first through the resource store (so locks and auxiliary
   resources are handled by CSS), then `delete('account', id)`, which removes
   logins, pods, WebID links and client credentials together.
+- **The pod root itself goes through the data accessor**, under the
+  resource locker's write lock. The store refuses it (7.3.0
+  `DataAccessorBasedStore.deleteResource`: "Cannot delete a root storage
+  container", and the root's `.acl` likewise), and with subdomain pods every
+  pod root is a root storage. Leaving the root would keep the name taken:
+  `GeneratedPodManager.createPod` answers 409 when anything exists at the
+  pod's base. This is one more CSS internal to carry; the gate below is
+  what notices if it changes.
+- **Order:** pods' data first, the account record last. A deletion that
+  fails halfway leaves the account in place, so it can be run again.
 - **Two callers of that route, same code:**
   - an **admin** may delete any account. Admins are login emails listed in
     the instance's environment, written into the config at start, the same
@@ -80,10 +92,14 @@ Option 4 now, written so it can become option 3:
 - Data held elsewhere about a deleted WebID: copies pulled into a
   collective's pod (ADR 006) are the collective's; does erasure reach them,
   or only end the pull?
-- Admin list mechanism: settle it with the email settings
-  (mapsofmaking/maps_of_making#15), then reuse.
-- Before building: one look at CSS `main` and its issues, to avoid building
-  what lands next month.
+
+Settled on acceptance (2026-11-03):
+- Admin list: the email settings were settled (mapsofmaking/maps_of_making#15,
+  `start/email.js`); `ADMIN_EMAILS` is written at start the same way.
+- Upstream: checked (Context, above); nothing is coming that we know of.
+- Built in slices: admin delete first (route, `scripts/admin.sh`, connector
+  cleanup, the gate), then listing and the account-manager page, then
+  self-service once its home is decided.
 
 ## Consequences
 
@@ -91,4 +107,4 @@ Option 4 now, written so it can become option 3:
 - A test instance can be cleaned account by account; real and test accounts
   can share an instance.
 - An instance can honour erasure, a precondition for opening to the public.
-- ADR 009's "one component" sentence is amended by this ADR if accepted.
+- ADR 009's "one component" sentence is amended by this ADR.
