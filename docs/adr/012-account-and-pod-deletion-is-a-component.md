@@ -1,6 +1,6 @@
 # ADR 012 — Account and pod deletion is the image's second component
 
-**Status:** accepted 2026-11-03 (proposed the same day) · **Applies to:** solid-css-overlay
+**Status:** accepted 2026-11-03 (proposed the same day); amendment proposed 2026-11-03, to deliberate (see "Amendment") · **Applies to:** solid-css-overlay
 (the image), every instance that runs it (pod.nicolasdb.eu, Maps of Making),
 the MCP connector's identity registry, and solid-backoffice if the
 self-service door lives there
@@ -108,3 +108,39 @@ Settled on acceptance (2026-11-03):
   can share an instance.
 - An instance can honour erasure, a precondition for opening to the public.
 - ADR 009's "one component" sentence is amended by this ADR.
+
+## Amendment (proposed 2026-11-03, to deliberate): the server's terminal, not an admin list
+
+**What changes.** Who may delete any account becomes whoever can run a
+command on the server, not the login emails listed in `ADMIN_EMAILS`. The
+account-manager page becomes a terminal tool. Built before any release, in
+solid-css-overlay#36; the email list never shipped.
+
+**Why.**
+- Stock CSS never verifies a login's email. An address on the list that nobody
+  had signed up with yet (a fresh install, a typo, a second address) made
+  whoever signed up with it first an admin.
+- The people who run an instance already prove it, with ssh and Docker on the
+  VPS. A second, weaker proof added risk and gave nothing back.
+
+**Shape.**
+- The route takes `action: list | delete` and is opened by a random token. The
+  image writes it at every start, mode 600, into the container's own
+  filesystem (never the data volume, never `.env`).
+- The tool (`admin/admin.js` in the image) runs inside the container, reads
+  the token, and calls CSS on 127.0.0.1, naming the instance's host with
+  `X-Forwarded-Host`.
+- `scripts/admin.sh` launches it with `docker compose exec`: a TUI to list,
+  sort, filter, select and delete, plus `list` and `delete --yes` for scripts.
+  Afterwards it removes the connector's agents.
+- The gateway templates refuse `/.account/admin/` from outside, as a second
+  layer behind the token.
+- Listing every account is new: stock lists only the caller's own. It reads
+  the account storage's `entries('account')`, one more CSS internal to carry.
+
+**What it leaves open.**
+- No browser page for admins. If one is wanted later, it needs its own answer
+  to "who is this?", decided here.
+- Self-service "Delete my account" is unchanged: same deletion, opened by the
+  person's own sign-in and passphrase. Where it lives is still the open
+  question above.
